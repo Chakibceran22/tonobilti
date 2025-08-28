@@ -5,7 +5,7 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { useState } from "react"
 import { AuthProvider } from "../hooks/useAuth"
 import { LanguageProvider } from "../providers/LanguageContext"
-import { Toaster } from "react-hot-toast"
+import { Toaster }  from '@/components/Toaster'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   // Create QueryClient inside the client component using useState
@@ -20,7 +20,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster position="top-right"   />
+      <Toaster />
       <AuthProvider>
         <LanguageProvider>
           {children}

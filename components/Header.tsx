@@ -21,7 +21,7 @@ const Header = () => {
   const getUserFullName = () => {
     if (!user) return "User";
     return user.user_metadata?.full_name || 
-           user.user_metadata?.display_name || 
+           user.user_metadata?.full_name || 
            `${user.user_metadata?.firstName || ''} ${user.user_metadata?.lastName || ''}`.trim() ||
            user.email?.split('@')[0] || 
            "User";

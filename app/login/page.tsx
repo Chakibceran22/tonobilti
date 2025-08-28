@@ -63,10 +63,11 @@ const LoginPage: React.FC = () => {
         const user = await login(email, password);
         if (user) {
             console.log("Login successful:", user);
-            toast.success("Login yes ");
+            toast.success("Successfully logged in");
         }
     } catch (error) {
         console.error("Login error:", error);
+        toast.error(error instanceof Error ? error.message : "Login failed");
     }
     }
   }
@@ -163,7 +164,7 @@ const LoginPage: React.FC = () => {
                     <Checkbox
                       id="remember"
                       checked={rememberMe}
-                      onCheckedChange={() => {}}
+                      onCheckedChange={() => { setRememberMe(!rememberMe) }}
                       disabled={isLoading}
                       className="h-4 w-4 rounded border-blue-300 text-blue-600 focus:ring-blue-500 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                     />

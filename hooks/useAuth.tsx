@@ -15,7 +15,7 @@ interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string) => Promise<{ user: User | null; error: AuthError | null }>
+  signUp: (email: string, password: string, firstName: string, lastName: string, phone: string, role: string) => Promise<{ user: User | null; error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ user: User | null; error: AuthError | null }>
   signOut: () => Promise<{ error: AuthError | null }>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signUp = async (email: string, password: string, firstName: string, lastName: string, phone: string) => {
+  const signUp = async (email: string, password: string, firstName: string, lastName: string, phone: string, type: string) => {
     try {
       setLoading(true)
       const { data, error } = await supabase.auth.signUp({
@@ -61,14 +61,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             firstName,
             lastName,
             phone,
+            role: type,
             full_name: `${firstName} ${lastName}`,
-            display_name: `${firstName} ${lastName}`
           }
         }
       })
+      if ( error){
+        throw new Error(error.message);
+      }
       return { user: data.user, error }
     } catch (error) {
-      return { user: null, error: error as AuthError }
+      throw new Error((error as AuthError).message);
     } finally {
       setLoading(false)
     }
@@ -81,9 +84,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         password
       })
+      if ( error){
+        throw new Error(error.message);
+        
+      }
       return { user: data.user, error }
     } catch (error) {
-      return { user: null, error: error as AuthError }
+      throw new Error((error as AuthError).message);
     } finally {
       setLoading(false)
     }
