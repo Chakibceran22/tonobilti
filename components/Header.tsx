@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter} from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { Globe, Menu, X, ChevronDown } from "lucide-react";
 import Link from "next/link";

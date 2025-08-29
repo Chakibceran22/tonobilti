@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect} from "react";
 import {
   User,
-  Settings,
   Heart,
   LogOut,
   Calendar,
@@ -13,8 +12,6 @@ import {
   Shield,
   ChevronRight,
   ArrowLeft,
-  Bell,
-  UserCog,
   Globe,
   Clock,
   CheckCircle,
@@ -30,6 +27,7 @@ import Link from "next/link";
 import { CarData } from "@/types/carTypes";
 import { userService } from "@/lib/userService";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import Image from "next/image";
 
 interface OrderInfo {
   id: string;
@@ -51,42 +49,7 @@ interface OrderInfo {
   sellerPhone: string;
   estimatedDeliveryTime: string;
 }
-
-const UserProfilePage: React.FC = () => {
-  const { loading: isLoading, user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<string>("personal");
-  const [isMobile, setIsMobile] = useState<boolean>(false);
-  const [menuOpen, setMenuOpen] = useState<boolean>(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-  const { language, setLanguage, t, tArray, isRtl } = useLanguage(); // Default to French
-  const [orders, setOrders] = useState<OrderInfo[]>([]);
-  const queryClient = useQueryClient()
-  const {
-    data: favoritesData,
-    isLoading: favoritesLoading,
-    error: favoritesError,
-    refetch: refetchFavorites,
-  } = useQuery({
-    queryKey: ["favorites"],
-    queryFn: () => userService.getFavorites(user!.id),
-    enabled: !!user?.id && !isLoading, // Only run when user.id exists
-    staleTime: 5 * 60 * 1000,
-  });
-    const removeFavoriteMutation = useMutation({
-    mutationFn: ({ userId, carId }: { userId: string; carId: string }) => 
-      userService.removeFavorite(userId, carId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"]});
-      queryClient.invalidateQueries({ queryKey: ["favoriteIds"]})
-    }
-  });
-
-  // Extract car data from favorites response
-  console.log("Raw favorites data:", favoritesData);
-  const favorites = favoritesData?.map((fav) => fav.cars).filter(Boolean) || [];
-  console.log("Processed favorites:", favorites);
-  const mockOrders: OrderInfo[] = [
+const mockOrders: OrderInfo[] = [
     {
       id: "ORD-2025-001",
       carTitle: "BMW X5 2020 - Luxury SUV",
@@ -116,6 +79,43 @@ const UserProfilePage: React.FC = () => {
       estimatedDeliveryTime: "Delivered",
     },
   ];
+
+const UserProfilePage: React.FC = () => {
+  const { loading: isLoading, user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState<string>("personal");
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const router = useRouter();
+  const { language, setLanguage, t, isRtl } = useLanguage(); // Default to French
+  const [orders, setOrders] = useState<OrderInfo[]>([]);
+  const queryClient = useQueryClient()
+  const {
+    data: favoritesData,
+    isLoading: favoritesLoading,
+    error: favoritesError,
+    refetch: refetchFavorites,
+  } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: () => userService.getFavorites(user!.id),
+    enabled: !!user?.id && !isLoading, // Only run when user.id exists
+    staleTime: 5 * 60 * 1000,
+  });
+    const removeFavoriteMutation = useMutation({
+    mutationFn: ({ userId, carId }: { userId: string; carId: string }) => 
+      userService.removeFavorite(userId, carId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"]});
+      queryClient.invalidateQueries({ queryKey: ["favoriteIds"]})
+    }
+  });
+
+  // Extract car data from favorites response
+  console.log("Raw favorites data:", favoritesData);
+  const favorites = favoritesData?.map((fav) => fav.cars).filter(Boolean) || [];
+  console.log("Processed favorites:", favorites);
+  
+  useEffect(() => {
+    setOrders(mockOrders);
+  },[])
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "pending":
@@ -162,18 +162,7 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  useEffect(() => {
-    const handleClickOutsideMenu = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
-      }
-    };
 
-    document.addEventListener("mousedown", handleClickOutsideMenu);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutsideMenu);
-    };
-  }, []);
 
   // Check if device is mobile
   useEffect(() => {
@@ -199,7 +188,7 @@ const UserProfilePage: React.FC = () => {
       router.push("/");
       return;
     }
-  }, [user, isLoading]);
+  }, [user, isLoading, router]);
 
   const handleSignOut = async (): Promise<void> => {
     try {
@@ -218,7 +207,7 @@ const UserProfilePage: React.FC = () => {
           alert("User Not Found");
           return;
         }
-        const response = await userService.removeFavorite(user.id, car.id);
+        const response = removeFavoriteMutation.mutate({ userId: user.id, carId: car.id });
         console.log(response);
         refetchFavorites();
       } catch (error) {
@@ -230,10 +219,11 @@ const UserProfilePage: React.FC = () => {
     return (
       <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl border border-blue-100 flex flex-col group hover:-translate-y-1">
         <div className="relative">
-          <img
+          <Image
+            width={300}
+            height={300}
             src={
-              car.images[car.imageIndex] ||
-              "/placeholder.svg?height=300&width=400"
+              car.images[car.imageIndex] 
             }
             alt={car.title}
             className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
@@ -696,7 +686,9 @@ const UserProfilePage: React.FC = () => {
 
                         {/* Car Image and Details */}
                         <div className="flex gap-4 mb-4">
-                          <img
+                          <Image
+                            width={100}
+                            height={100}
                             src={order.carImage}
                             alt={order.carTitle}
                             className="w-20 h-20 object-cover rounded-lg border border-gray-200"
@@ -794,7 +786,7 @@ const UserProfilePage: React.FC = () => {
                     No orders yet
                   </h4>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    You haven't placed any orders yet. Start browsing our
+                    You havent placed any orders yet. Start browsing our
                     premium vehicles!
                   </p>
                   <button
