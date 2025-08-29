@@ -99,6 +99,7 @@
     "login_loginFailed": "Échec de connexion. Vérifiez votre email et mot de passe.",
     "login_googleLoginFailed": "Échec de connexion Google. Réessayez.",
     "login_authenticating": "Vérification en cours...",
+    "login_success": "Connexion réussie",
 
     "signup_createAccount": "Créer un Nouveau Compte",
     "signup_signupAccess": "Inscrivez-vous et profitez des services Tonobilti",
@@ -879,6 +880,8 @@
     "login_loginFailed": "فشل تسجيل الدخول. تأكد من البريد الإلكتروني وكلمة المرور.",
     "login_googleLoginFailed": "فشل تسجيل الدخول بجوجل. جرب مرة ثانية.",
     "login_authenticating": "جاري التحقق...",
+    "login_success": "تسجيل الدخول ناجح",
+
 
     "signup_createAccount": "سجل حساب جديد",
     "signup_signupAccess": "سجل معنا واستمتع بخدمات تونوبيلتي",
