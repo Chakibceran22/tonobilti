@@ -51,5 +51,29 @@ test("removeFavorite throws an error when deletion fails", async () => {
   await expect(userService.removeFavorite('user123', 'car456')).rejects.toThrow('Deletion failed');
 })
 
+test("getFavorites retrieves favorite cars for a user", async () => {
+  const mockData = [{ user_id: 'user123', car_id: 'car456' }];
+  const mockError = null; 
+  const mockEq = jest.fn().mockReturnValue({ data: mockData, error: mockError });
+  const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+  const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
+  supabase.from = mockFrom;
+  const result = await userService.getFavorites('user123');
+  expect(mockFrom).toHaveBeenCalledWith('favorites');
+  expect(mockSelect).toHaveBeenCalledWith('*');
+  expect(mockEq).toHaveBeenCalledWith('user_id', 'user123');
+  expect(result).toEqual(mockData);
+})
+
+
+test("getFavorites throws an error when retrieval fails", async () => {
+  const mockData = null;
+  const mockError = { message: 'Retrieval failed' };
+  const mockEq = jest.fn().mockReturnValue({ data: mockData, error: mockError });
+  const mockSelect = jest.fn().mockReturnValue({ eq: mockEq });
+  const mockFrom = jest.fn().mockReturnValue({ select: mockSelect });
+  supabase.from = mockFrom;
+  await expect(userService.getFavorites('user123')).rejects.toThrow('Retrieval failed');
+})
 });
 

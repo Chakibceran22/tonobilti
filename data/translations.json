@@ -65,6 +65,13 @@
     "home_warningLogin": "Connectez-vous pour profiter de cette fonctionnalité.",
     "home_errorLoadingVehicles": "Erreur de chargement des véhicules",
     "home_pleaseTryAgainLater": "Veuillez réessayer plus tard",
+    "user_searchDisabled": "Recherche désactivée",
+    "user_errorLoadingData": "Erreur de chargement des données",
+    "user_errorLoadingCars": "Erreur de chargement des voitures",
+    "user_errorLoadingMessage": "Une erreur s'est produite lors du chargement des données. Veuillez réessayer.",
+    "user_tryAgain": "Réessayer",
+    "user_refreshPage": "Actualiser la page",
+    "starting_from": "À partir de",
 
 
     "login_tonobilti": "Tonobilti",
@@ -837,6 +844,13 @@
     "home_warningLogin": "سجل دخولك عشان تستفيد من هذه الخدمة.",
     "home_errorLoadingVehicles": "خطأ في تحميل المركبات",
     "home_pleaseTryAgainLater": "يرجى المحاولة مرة أخرى لاحقًا",
+    "user_searchDisabled": "البحث معطل",
+    "user_errorLoadingData": "خطأ في تحميل البيانات",
+    "user_errorLoadingCars": "خطأ في تحميل السيارات",
+    "user_errorLoadingMessage": "حدث خطأ أثناء تحميل البيانات. يرجى المحاولة مرة أخرى.",
+    "user_tryAgain": "حاول مرة أخرى",
+    "user_refreshPage": "تحديث الصفحة",
+    "starting_from": "يبدأ من",
 
    
 

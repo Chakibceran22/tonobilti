@@ -27,12 +27,10 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import { CarData } from "@/types/carTypes";
+import { userService } from "@/lib/userService";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
-interface UserInfo {
-  uid: string;
-  favoriteCars?: string[];
-  [key: string]: any;
-}
 interface OrderInfo {
   id: string;
   carTitle: string;
@@ -60,10 +58,34 @@ const UserProfilePage: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [favorites, setFavorites] = useState<[]>([]);
   const router = useRouter();
   const { language, setLanguage, t, tArray, isRtl } = useLanguage(); // Default to French
   const [orders, setOrders] = useState<OrderInfo[]>([]);
+  const queryClient = useQueryClient()
+  const {
+    data: favoritesData,
+    isLoading: favoritesLoading,
+    error: favoritesError,
+    refetch: refetchFavorites,
+  } = useQuery({
+    queryKey: ["favorites"],
+    queryFn: () => userService.getFavorites(user!.id),
+    enabled: !!user?.id && !isLoading, // Only run when user.id exists
+    staleTime: 5 * 60 * 1000,
+  });
+    const removeFavoriteMutation = useMutation({
+    mutationFn: ({ userId, carId }: { userId: string; carId: string }) => 
+      userService.removeFavorite(userId, carId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["favorites"]});
+      queryClient.invalidateQueries({ queryKey: ["favoriteIds"]})
+    }
+  });
+
+  // Extract car data from favorites response
+  console.log("Raw favorites data:", favoritesData);
+  const favorites = favoritesData?.map((fav) => fav.cars).filter(Boolean) || [];
+  console.log("Processed favorites:", favorites);
   const mockOrders: OrderInfo[] = [
     {
       id: "ORD-2025-001",
@@ -171,17 +193,13 @@ const UserProfilePage: React.FC = () => {
 
   // Auth state listener
   useEffect(() => {
-    if(isLoading) return
-    
+    if (isLoading) return;
+
     if (!user) {
       router.push("/");
       return;
     }
   }, [user, isLoading]);
-
-  useEffect(() => {
-    console.log(favorites);
-  }, [favorites]);
 
   const handleSignOut = async (): Promise<void> => {
     try {
@@ -193,19 +211,16 @@ const UserProfilePage: React.FC = () => {
   };
 
   // Car card component for favorites and recent views
-  const CarCard: React.FC<{ car; userInfo: UserInfo }> = ({
-    car,
-    userInfo,
-  }) => {
+  const CarCard: React.FC<{ car: CarData }> = ({ car }) => {
     const removeFavoriteFront = async (): Promise<void> => {
       try {
-        if (!userInfo?.uid) {
+        if (!user?.id) {
           alert("User Not Found");
           return;
         }
-        const response = await removeFavorite(userInfo.uid, car.id);
+        const response = await userService.removeFavorite(user.id, car.id);
         console.log(response);
-        setFavorites(favorites.filter((fav) => fav.id !== car.id));
+        refetchFavorites();
       } catch (error) {
         console.log(error);
         return;
@@ -216,7 +231,10 @@ const UserProfilePage: React.FC = () => {
       <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl border border-blue-100 flex flex-col group hover:-translate-y-1">
         <div className="relative">
           <img
-            src={car.image || "/placeholder.svg?height=300&width=400"}
+            src={
+              car.images[car.imageIndex] ||
+              "/placeholder.svg?height=300&width=400"
+            }
             alt={car.title}
             className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
@@ -248,7 +266,7 @@ const UserProfilePage: React.FC = () => {
               {car.price?.toLocaleString() || "0"} DA
             </div>
             <Link
-              href={`/product/${car.id}`}
+              href={`/product?id=${car.id}`}
               className="px-3 py-1.5 bg-blue-800 text-white text-sm font-medium rounded-lg hover:bg-blue-900 transition-colors flex items-center group"
               aria-label={`View details for ${car.title}`}
               prefetch={true}
@@ -334,7 +352,7 @@ const UserProfilePage: React.FC = () => {
                     ? user?.user_metadata.full_name
                         .split(" ")
                         .slice(0, 2)
-                        .map((name) => name[0])
+                        .map((full_name: string) => full_name[0])
                         .join("")
                         .toUpperCase()
                     : "U"}
@@ -553,7 +571,7 @@ const UserProfilePage: React.FC = () => {
             </div>
           )}
 
-          {/* {activeTab === "favorites" && (
+          {activeTab === "favorites" && (
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
@@ -569,10 +587,35 @@ const UserProfilePage: React.FC = () => {
                 </span>
               </div>
 
-              {favorites.length > 0 ? (
+              {favoritesLoading ? (
+                <div className="text-center py-16">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-blue-600 font-medium">
+                    Loading favorites...
+                  </p>
+                </div>
+              ) : favoritesError ? (
+                <div className="text-center py-16 bg-red-50 rounded-xl border border-red-100">
+                  <div className="h-16 w-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-red-500 border border-red-200">
+                    <AlertCircle className="h-8 w-8" />
+                  </div>
+                  <h4 className="text-xl font-bold text-gray-900 mb-2">
+                    Error loading favorites
+                  </h4>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    There was an error loading your favorite vehicles.
+                  </p>
+                  <button
+                    className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors shadow-md flex items-center mx-auto group"
+                    onClick={() => refetchFavorites()}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              ) : favorites.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {favorites.map((car) => (
-                    <CarCard key={car.id} userInfo={userInfo} car={car} />
+                    <CarCard key={car.id} car={car} />
                   ))}
                 </div>
               ) : (
@@ -602,7 +645,7 @@ const UserProfilePage: React.FC = () => {
                 </div>
               )}
             </div>
-          )} */}
+          )}
           {activeTab === "orders" && (
             <div>
               <div className="flex justify-between items-center mb-6">
