@@ -83,6 +83,6 @@ describe('Cars Service', () => {
     const mockSelect = jest.fn().mockReturnValue({ eq: mockEq})
     const mockFrom = jest.fn().mockReturnValue({ select: mockSelect})
     supabase.from = mockFrom
-    await expect(carService.getCarById(1)).rejects.toThrow(mockError.message)
+    await expect(carService.getCarById("hello")).rejects.toThrow(mockError.message)
   })
 })

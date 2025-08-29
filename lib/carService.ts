@@ -8,12 +8,13 @@ export const carService = {
         }
         return data;
     },
-    async getCarById(id: number) {
+    async getCarById(id: string) {
         const { data, error} = await supabase.from('cars').select('*').eq('id', id).single();
-        if( error){
+        if(error){
             throw new Error('Failed to fetch Car');
         }
         return data;
 
     }
+
 }

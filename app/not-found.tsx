@@ -1,14 +1,14 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Car, AlertTriangle, Globe } from "lucide-react"
+import {  AlertTriangle } from "lucide-react"
 import { useLanguage } from '@/hooks/useLanguage'
 
 
 
 export default function NotFound() {
   const router = useRouter()
-  const { language, setLanguage,t, isRtl } = useLanguage()
+  const { t, isRtl } = useLanguage()
 
 
 

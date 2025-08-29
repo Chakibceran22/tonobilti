@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import {
   User,
   Store,
@@ -8,11 +8,7 @@ import {
   BarChart,
   ChevronRight,
   Check,
-  Calendar,
-  Gauge,
-  Fuel,
-  Settings,
-  Star,
+  
   Lock,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -23,6 +19,7 @@ import { Language } from "../providers/LanguageContext"
 // import { CarData } from "../types/car"
 import type { TranslationFn } from "@/providers/LanguageContext"
 import Header from "@/components/Header"
+import { carService } from "@/lib/carService"
 
 
 const LuxuryAutoLanding = () => {
@@ -48,7 +45,9 @@ const Hero = ({  t, isRtl } : { t: TranslationFn, isRtl: boolean}) => {
   const router = useRouter()
 
   return (
+    
     <div className="relative bg-gradient-to-br from-blue-900 to-blue-800 text-white overflow-hidden">
+     
       <div className="absolute inset-0 opacity-10 bg-blue-800 bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat"></div>
       <div className="container mx-auto px-4 py-14 md:py-16 relative z-10">
         <div  dir={isRtl ? "rtl" : ""} className="grid md:grid-cols-2 gap-8 items-center">
@@ -253,6 +252,7 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
 
   return (
     <div className="py-20 bg-white relative overflow-hidden">
+      
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="container mx-auto px-4">

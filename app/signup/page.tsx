@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Mail, Eye, EyeOff, Loader2, User, Store, Briefcase, Lock } from "lucide-react"
+import {  Eye, EyeOff, Loader2, User, Store, Briefcase, Lock } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLanguage } from '../../hooks/useLanguage'
 import AuthHeader from "@/components/AuthHeader"
@@ -33,16 +33,13 @@ interface FormErrors {
 }
 
 
-// Language translations
-
 const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
   const [selectedRole, setSelectedRole] = useState<UserRole>("user")
   const router = useRouter()
   const [termsChecked, setTermsChecked] = useState<boolean>(false)
-  const { language, setLanguage, t, isRtl } = useLanguage() // Default to French as in login page
-  // Add state to track hover for showroom and agent cards
+  const { language, setLanguage, t, isRtl } = useLanguage() 
   const [hoveredCard, setHoveredCard] = useState<HoveredCard>(null)
   const {loading: isLoading, signUp} = useAuth()
 
