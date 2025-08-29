@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import {  Mail, Eye, EyeOff, Loader2 } from "lucide-react"
+import {   Eye, EyeOff, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useLanguage } from "../../hooks/useLanguage"
 import AuthHeader from "@/components/AuthHeader"

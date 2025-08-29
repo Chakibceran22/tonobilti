@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect , useMemo} from "react"
+import { useState, useMemo } from "react";
 import {
   User,
   Store,
@@ -13,56 +13,63 @@ import {
   Gauge,
   Calendar,
   Lock,
-} from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useLanguage } from '../hooks/useLanguage'
-import Footer from "@/components/Footer"
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useLanguage } from "../hooks/useLanguage";
+import Footer from "@/components/Footer";
 // import { fetchAllCars } from '../utils/fetchAllCars'
-import { Language } from "../providers/LanguageContext"
+import { Language } from "../providers/LanguageContext";
 // import { CarData } from "../types/car"
-import type { TranslationFn } from "@/providers/LanguageContext"
-import Header from "@/components/Header"
-import { carService } from "@/lib/carService"
-import type { CarData } from "@/types/carTypes"
-import { useQuery } from "@tanstack/react-query"
-
+import type { TranslationFn } from "@/providers/LanguageContext";
+import Header from "@/components/Header";
+import { carService } from "@/lib/carService";
+import type { CarData } from "@/types/carTypes";
+import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
+import Link from "next/link";
 
 const LuxuryAutoLanding = () => {
-  const { language, isRtl, t } = useLanguage()
-  
+  const { language, isRtl, t } = useLanguage();
+
   return (
     <div
-      className={`min-h-screen bg-white ${language === "ar" ? "rtl text-right" : "ltr text-left"}`}
+      className={`min-h-screen bg-white ${
+        language === "ar" ? "rtl text-right" : "ltr text-left"
+      }`}
       dir={language === "ar" ? "rtl" : "ltr"}
     >
-      < Header />
-      <Hero  t={t} isRtl={isRtl} />
+      <Header />
+      <Hero t={t} isRtl={isRtl} />
       <UserTypeSection language={language} t={t} isRtl={isRtl} />
-      <FeaturedCars  t={t} isRtl={isRtl} />
-      <CallToAction  t={t} isRtl ={isRtl} />
-      <Footer t={t} isRtl={isRtl}  />
+      <FeaturedCars t={t} isRtl={isRtl} />
+      <CallToAction t={t} isRtl={isRtl} />
+      <Footer t={t} isRtl={isRtl} />
     </div>
-  )
-}
+  );
+};
 
 // Hero Section Component
-const Hero = ({  t, isRtl } : { t: TranslationFn, isRtl: boolean}) => {
-  const router = useRouter()
+const Hero = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
+  const router = useRouter();
 
   return (
-    
     <div className="relative bg-gradient-to-br from-blue-900 to-blue-800 text-white overflow-hidden">
-     
       <div className="absolute inset-0 opacity-10 bg-blue-800 bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat"></div>
       <div className="container mx-auto px-4 py-14 md:py-16 relative z-10">
-        <div  dir={isRtl ? "rtl" : ""} className="grid md:grid-cols-2 gap-8 items-center">
+        <div
+          dir={isRtl ? "rtl" : ""}
+          className="grid md:grid-cols-2 gap-8 items-center"
+        >
           {/* Text Section */}
-          <div className={`  space-y-6 animate-fadeInUp ${isRtl ? "md:mr-15 md:order-2" : " md:ml-15 md:order-1"}`}>
-           
+          <div
+            className={`  space-y-6 animate-fadeInUp ${
+              isRtl ? "md:mr-15 md:order-2" : " md:ml-15 md:order-1"
+            }`}
+          >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-              {t('home_discoverYour')}{" "}
+              {t("home_discoverYour")}{" "}
               <span className="text-blue-300 relative inline-block">
-                {t('home_luxuryVehicle')}
+                {t("home_luxuryVehicle")}
                 <svg
                   className="absolute -bottom-2 left-0 w-full"
                   viewBox="0 0 200 8"
@@ -84,42 +91,44 @@ const Hero = ({  t, isRtl } : { t: TranslationFn, isRtl: boolean}) => {
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-700 flex items-center justify-center mt-0.5">
                   <Check className="h-3.5 w-3.5 text-blue-300" />
                 </div>
-                <span className="ml-2 text-base">{t('home_luxeryDesc')}</span>
+                <span className="ml-2 text-base">{t("home_luxeryDesc")}</span>
               </li>
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-700 flex items-center justify-center mt-0.5">
                   <Check className="h-3.5 w-3.5 text-blue-300" />
                 </div>
-                <span className="ml-2 text-base">{t('home_luxeryDesc2')}</span>
+                <span className="ml-2 text-base">{t("home_luxeryDesc2")}</span>
               </li>
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-700 flex items-center justify-center mt-0.5">
                   <Check className="h-3.5 w-3.5 text-blue-300" />
                 </div>
-                <span className="ml-2 text-base">{t('home_luxeryDesc3')}</span>
+                <span className="ml-2 text-base">{t("home_luxeryDesc3")}</span>
               </li>
               <li className="flex items-start">
                 <div className="flex-shrink-0 h-6 w-6 rounded-full bg-blue-700 flex items-center justify-center mt-0.5">
                   <Check className="h-3.5 w-3.5 text-blue-300" />
                 </div>
-                <span className="ml-2 text-base">{t('home_luxeryDesc4')}</span>
+                <span className="ml-2 text-base">{t("home_luxeryDesc4")}</span>
               </li>
             </ul>
 
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
                 onClick={() => {
-                  const carsSection = document.getElementById("cars")
+                  const carsSection = document.getElementById("cars");
                   if (carsSection) {
-                    carsSection.scrollIntoView({ behavior: "smooth" })
+                    carsSection.scrollIntoView({ behavior: "smooth" });
                   }
                 }}
                 className="px-6 py-3 bg-white text-blue-800 font-medium rounded-lg hover:bg-gray-100 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center group"
               >
-                {t('home_viewCollection')}
+                {t("home_viewCollection")}
                 <ArrowRight
                   className={`ml-2 h-5 w-5 transform transition-transform duration-300 ${
-                    isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"
+                    isRtl
+                      ? "rotate-180 group-hover:-translate-x-1"
+                      : "group-hover:translate-x-1"
                   }`}
                 />
               </button>
@@ -127,50 +136,67 @@ const Hero = ({  t, isRtl } : { t: TranslationFn, isRtl: boolean}) => {
                 onClick={() => router.push("/signup")}
                 className="px-6 py-3 bg-transparent border border-white text-white font-medium rounded-lg hover:bg-white hover:text-blue-800 hover:bg-opacity-10 transition-all duration-300 backdrop-blur-sm"
               >
-                {t('home_becomeMember')}
+                {t("home_becomeMember")}
               </button>
             </div>
           </div>
 
           {/* Image Section */}
-          <div className={`relative hidden md:block animate-fadeInRight ${isRtl ? "md:order-1" : "md:order-2"}`}>
-            <img
-              src="https://res.cloudinary.com/dzfaa28ro/image/upload/v1742780926/lan-page-car_mpcwvn.png"
+          <div
+            className={`relative hidden md:block animate-fadeInRight ${
+              isRtl ? "md:order-1" : "md:order-2"
+            }`}
+          >
+            <Image
+              width={800}
+              height={800}
+              src="/hero-image.avif"
               alt="Luxury car"
               className="relative z-10 bg-transparent w-full"
+              priority // Add this for above-the-fold images
             />
           </div>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-blue-900 to-transparent"></div>
     </div>
-  )
-}
+  );
+};
 
 // User Type Section
-const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: TranslationFn , isRtl: boolean}) => {
-  const router = useRouter()
+const UserTypeSection = ({
+  language,
+  t,
+  isRtl,
+}: {
+  language: Language;
+  t: TranslationFn;
+  isRtl: boolean;
+}) => {
+  const router = useRouter();
 
   // Add state to track which dropdowns are open
-  const [openDropdowns, setOpenDropdowns] = useState<{[key: string]: boolean}>({})
-  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [openDropdowns, setOpenDropdowns] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   // Add state to track hover for showroom and broker cards
 
   // Function to toggle dropdown state
   const toggleDropdown = (typeIndex: number, benefitIndex: number) => {
-  const key = `${typeIndex}-${benefitIndex}`
-  setOpenDropdowns((prev) => ({
-    ...prev,
-    [key]: !prev[key],
-  }))
-}
+    const key = `${typeIndex}-${benefitIndex}`;
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   // Add descriptions for each benefit
   const benefitDescriptions: {
-  [key: string]: {
-    [key: string]: string;
-  };
-} = {
+    [key: string]: {
+      [key: string]: string;
+    };
+  } = {
     fr: {
       // Premium Buyer benefits
       "Importation facile et flexible selon vos besoins":
@@ -210,8 +236,10 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
         "نحن نضمن لك عملية استيراد آمنة وخالية من التعقيدات، مع حلول ذكية للتعامل مع كل المخاوف والمشاكل المحتملة، حتى تحصل على سيارتك بثقة وراحة بال.",
 
       // Luxury Showroom benefits
-      "وصول إلى مشترين جادين وموثوقين": "اعرض مركباتك لعملاء دوليين ذوي قيمة عالية يبحثون عن سيارات حصرية.",
-      "عملاء محتملين مؤهلين": "جميع المشترين مؤهلون ماليًا مسبقًا، مما يتيح لك التركيز على العملاء الجادين.",
+      "وصول إلى مشترين جادين وموثوقين":
+        "اعرض مركباتك لعملاء دوليين ذوي قيمة عالية يبحثون عن سيارات حصرية.",
+      "عملاء محتملين مؤهلين":
+        "جميع المشترين مؤهلون ماليًا مسبقًا، مما يتيح لك التركيز على العملاء الجادين.",
       "أدوات تحليل لمتابعة الأداء وزيادة المبيعات":
         "أبرز تراث وحصرية علامتك التجارية من خلال عروض تقديمية مخصصة وفعاليات افتراضية.",
 
@@ -223,52 +251,68 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
       "توليد العملاء المحتملين":
         "استلم عملاء محتملين مؤهلين مباشرة في لوحة التحكم الخاصة بك، دون الحاجة إلى الإنفاق على الإعلانات.",
     },
-  }
+  };
 
   const userTypes = [
     {
-      title: t('home_premiumBuyer'),
+      title: t("home_premiumBuyer"),
       icon: <User className="h-6 w-6 text-blue-800" />,
-      description: t('home_premiumBuyerDesc'),
-      benefits: [t('home_easyImport'), t('home_grayCard'), t('home_readyCars'), t('home_safeImport')],
+      description: t("home_premiumBuyerDesc"),
+      benefits: [
+        t("home_easyImport"),
+        t("home_grayCard"),
+        t("home_readyCars"),
+        t("home_safeImport"),
+      ],
       bgColor: "bg-white",
-      buttonText: t('home_exploreBuyer'),
+      buttonText: t("home_exploreBuyer"),
     },
     {
-      title: t('home_luxuryShowroom'),
+      title: t("home_luxuryShowroom"),
       icon: <Store className="h-6 w-6 text-gray-200" />,
-      description: t('home_luxuryShowroomDesc'),
-      benefits: [t('home_globalVisibility'), t('home_qualifiedLeads'), t('home_brandPromotion')],
+      description: t("home_luxuryShowroomDesc"),
+      benefits: [
+        t("home_globalVisibility"),
+        t("home_qualifiedLeads"),
+        t("home_brandPromotion"),
+      ],
       bgColor: "bg-blue-800",
-      buttonText: t('home_partnerWithUs'),
+      buttonText: t("home_partnerWithUs"),
       featured: true,
       locked: true, // Mark as locked feature
     },
     {
       title: t("home_eliteAgent"),
       icon: <BarChart className="h-6 w-6 text-blue-800" />,
-      description: t('home_eliteAgentDesc'),
-      benefits: [t('home_highCommission'), t('home_marketingTools'), t('home_leadGeneration')],
+      description: t("home_eliteAgentDesc"),
+      benefits: [
+        t("home_highCommission"),
+        t("home_marketingTools"),
+        t("home_leadGeneration"),
+      ],
       bgColor: "bg-white",
       buttonText: t("home_joinAsAgent"),
       locked: true, // Mark as locked feature
     },
-  ]
+  ];
 
   return (
     <div className="py-20 bg-white relative overflow-hidden">
-      
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_chooseExperience')}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">{t('home_experienceDescription')}</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {t("home_chooseExperience")}
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {t("home_experienceDescription")}
+          </p>
           <div className="w-20 h-1 bg-blue-800 mx-auto mt-6"></div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8">
-          {userTypes.map((type, typeIndex:number) => (
+          {userTypes.map((type, typeIndex: number) => (
             <div
               key={typeIndex}
               className={`${type.bgColor} ${
@@ -277,8 +321,11 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
               onMouseEnter={() => type.locked && setHoveredCard(typeIndex)}
               onMouseLeave={() => type.locked && setHoveredCard(null)}
             >
-              
-              <div className={`p-8 ${type.featured ? "text-white" : "text-gray-800"}`}>
+              <div
+                className={`p-8 ${
+                  type.featured ? "text-white" : "text-gray-800"
+                }`}
+              >
                 <div
                   className={`h-14 w-14 rounded-full ${
                     type.featured ? "bg-blue-700" : "bg-blue-50"
@@ -287,19 +334,30 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
                   {type.icon}
                 </div>
                 <h3 className="text-xl font-bold mb-3">{type.title}</h3>
-                <p className={`mb-6 ${type.featured ? "text-blue-100" : "text-gray-600"}`}>{type.description}</p>
+                <p
+                  className={`mb-6 ${
+                    type.featured ? "text-blue-100" : "text-gray-600"
+                  }`}
+                >
+                  {type.description}
+                </p>
                 <ul className="space-y-4 mb-8">
-                  {type.benefits.map((benefit, benefitIndex:number) => {
-                    const isOpen = openDropdowns[`${typeIndex}-${benefitIndex}`]
-                    const description  = benefitDescriptions[language][benefit]
+                  {type.benefits.map((benefit, benefitIndex: number) => {
+                    const isOpen =
+                      openDropdowns[`${typeIndex}-${benefitIndex}`];
+                    const description = benefitDescriptions[language][benefit];
 
                     return (
                       <li key={benefitIndex} className="overflow-hidden">
                         <div
-                          onClick={() => toggleDropdown(typeIndex, benefitIndex)}
+                          onClick={() =>
+                            toggleDropdown(typeIndex, benefitIndex)
+                          }
                           className={`flex items-center cursor-pointer rounded-lg transition-all duration-300 ${
                             type.featured
-                              ? `${isOpen ? "bg-blue-700" : ""} hover:bg-blue-700`
+                              ? `${
+                                  isOpen ? "bg-blue-700" : ""
+                                } hover:bg-blue-700`
                               : `${isOpen ? "bg-blue-50" : ""} hover:bg-blue-50`
                           } ${isOpen ? "shadow-sm" : ""}`}
                         >
@@ -307,11 +365,19 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
                             <div
                               className={`flex items-center justify-center h-8 w-8 rounded-full mr-2 transition-all duration-300 ${
                                 type.featured
-                                  ? `${isOpen ? "bg-blue-600" : "bg-blue-700"} text-blue-300`
-                                  : `${isOpen ? "bg-blue-100" : "bg-blue-50"} text-blue-800`
+                                  ? `${
+                                      isOpen ? "bg-blue-600" : "bg-blue-700"
+                                    } text-blue-300`
+                                  : `${
+                                      isOpen ? "bg-blue-100" : "bg-blue-50"
+                                    } text-blue-800`
                               }`}
                             >
-                              <svg className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                              <svg
+                                className="h-4 w-4"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
                                 <path
                                   fillRule="evenodd"
                                   d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -320,13 +386,19 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
                               </svg>
                             </div>
                             <div className="flex-1 py-2">
-                              <span className={`text-sm font-medium ${type.featured ? "text-white" : "text-gray-700"}`}>
+                              <span
+                                className={`text-sm font-medium ${
+                                  type.featured ? "text-white" : "text-gray-700"
+                                }`}
+                              >
                                 {benefit}
                               </span>
                             </div>
                             <div
                               className={`flex items-center justify-center h-8 w-8 rounded-full transition-transform duration-300 ${
-                                type.featured ? "text-blue-300" : "text-blue-800"
+                                type.featured
+                                  ? "text-blue-300"
+                                  : "text-blue-800"
                               }`}
                             >
                               <ChevronRight
@@ -340,19 +412,27 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
 
                         <div
                           className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+                            isOpen
+                              ? "max-h-96 opacity-100"
+                              : "max-h-0 opacity-0"
                           }`}
                         >
                           <div
                             className={`mt-2 mx-2 px-4 py-3 text-sm rounded-lg ${
-                              type.featured ? "bg-blue-700 text-blue-100" : "bg-blue-50 text-gray-600"
-                            } border-l-2 ${type.featured ? "border-blue-300" : "border-blue-300"}`}
+                              type.featured
+                                ? "bg-blue-700 text-blue-100"
+                                : "bg-blue-50 text-gray-600"
+                            } border-l-2 ${
+                              type.featured
+                                ? "border-blue-300"
+                                : "border-blue-300"
+                            }`}
                           >
                             {description}
                           </div>
                         </div>
                       </li>
-                    )
+                    );
                   })}
                 </ul>
                 <button
@@ -362,12 +442,18 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
                       : "bg-blue-800 text-white hover:bg-blue-900 shadow-md hover:shadow-lg"
                   }`}
                   onClick={
-                    type.buttonText === t('home_exploreBuyer') ? () => router.push("/signup") : () => alert(t('home_featureNotUnlocked'))
+                    type.buttonText === t("home_exploreBuyer")
+                      ? () => router.push("/signup")
+                      : () => alert(t("home_featureNotUnlocked"))
                   }
                 >
                   {type.buttonText}
                   <ChevronRight
-                    className={`ml-2 h-4 w-4 opacity-70 transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
+                    className={`ml-2 h-4 w-4 opacity-70 transition-transform duration-300 ${
+                      isRtl
+                        ? "rotate-180 group-hover:-translate-x-1"
+                        : "group-hover:translate-x-1"
+                    }`}
                   />
                 </button>
               </div>
@@ -376,7 +462,9 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
               {type.locked && (
                 <div
                   className={`absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-300 ${
-                    hoveredCard === typeIndex ? "opacity-100" : "opacity-0 pointer-events-none"
+                    hoveredCard === typeIndex
+                      ? "opacity-100"
+                      : "opacity-0 pointer-events-none"
                   }`}
                   dir={language === "ar" ? "rtl" : "ltr"}
                 >
@@ -384,7 +472,9 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
                     <div className="bg-blue-800 rounded-full h-16 w-16 flex items-center justify-center mx-auto mb-4">
                       <Lock className="h-8 w-8 text-white" />
                     </div>
-                    <p className="text-white text-lg font-medium mb-2">{t('home_featureNotUnlocked')}</p>
+                    <p className="text-white text-lg font-medium mb-2">
+                      {t("home_featureNotUnlocked")}
+                    </p>
                   </div>
                 </div>
               )}
@@ -393,25 +483,29 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 // FeaturedCars Section
-const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
-  const router = useRouter()
-  
-  const { data: cars, isLoading, error } = useQuery<CarData[]>({
-    queryKey: ['cars'],
-    queryFn: () => carService.getAllCars()
-  })
+const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
+  const router = useRouter();
+
+  const {
+    data: cars,
+    isLoading,
+    error,
+  } = useQuery<CarData[]>({
+    queryKey: ["cars"],
+    queryFn: () => carService.getAllCars(),
+  });
 
   // Filter and limit to 4 featured cars
   const featuredCars = useMemo(() => {
-    if (!cars) return []
+    if (!cars) return [];
     return cars
       .filter((car): car is CarData => car !== undefined && car !== null)
-      .slice(0, 4)
-  }, [cars])
+      .slice(0, 4);
+  }, [cars]);
 
   if (isLoading) {
     return (
@@ -424,7 +518,10 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
               <div className="h-4 bg-gray-300 rounded mb-6 mx-auto w-96"></div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[...Array(4)].map((_, i) => (
-                  <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100">
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100"
+                  >
                     <div className="h-48 bg-gray-300"></div>
                     <div className="p-4">
                       <div className="h-4 bg-gray-300 rounded mb-2"></div>
@@ -445,7 +542,7 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       </div>
-    )
+    );
   }
 
   if (error) {
@@ -454,13 +551,15 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
         <div className="container mx-auto px-4 text-center">
           <div className="text-red-600 mb-4">
-            <h3 className="text-xl font-semibold mb-2">{t('home_errorLoadingVehicles')}</h3>
-            <p>{t('home_pleaseTryAgainLater')}</p>
+            <h3 className="text-xl font-semibold mb-2">
+              {t("home_errorLoadingVehicles")}
+            </h3>
+            <p>{t("home_pleaseTryAgainLater")}</p>
           </div>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       </div>
-    )
+    );
   }
 
   if (featuredCars.length === 0) {
@@ -468,12 +567,14 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
       <div className="py-20 bg-white relative overflow-hidden" id="cars">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
         <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_featuredVehicles')}</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {t("home_featuredVehicles")}
+          </h2>
           <p className="text-gray-600">No vehicles available at the moment</p>
         </div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       </div>
-    )
+    );
   }
 
   return (
@@ -481,32 +582,40 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_featuredVehicles')}</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">{t('home_featuredVehiclesDesc')}</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+            {t("home_featuredVehicles")}
+          </h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">
+            {t("home_featuredVehiclesDesc")}
+          </p>
           <div className="w-20 h-1 bg-blue-800 mx-auto mt-6"></div>
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredCars.map((car) => (
-            <div
+            <Link
               key={car.id}
-              onClick={() => router.push(`/product?id=${car.id}`)}
-              className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
+              href={`/product?id=${car.id}`}
+              className="block bg-white rounded-md shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
             >
               <div className="relative h-48 overflow-hidden">
-                <img
+                <Image
+                  width={350}
+                  height={350}
                   src={car.images[car.imageIndex] || "/placeholder.svg"}
                   alt={car.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
-                  {t('home_premium')}
+                  {t("home_premium")}
                 </div>
               </div>
 
               <div className="p-4">
                 <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
-                <p className="text-blue-800 font-bold text-lg mb-2">{car.price.toLocaleString()} DA</p>
+                {/* <p className="text-blue-800 font-bold text-lg mb-2">
+          {car.price.toLocaleString()} DA
+        </p> */}
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="flex items-center text-xs text-gray-600">
@@ -527,46 +636,45 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
                   </div>
                 </div>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    router.push(`/product?id=${car.id}`)
-                  }}
-                  className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center group"
-                >
-                  {t('home_viewDetails')}
+                <div className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center">
+                  {t("home_viewDetails")}
                   <ChevronRight
-                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
+                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${
+                      isRtl
+                        ? "rotate-180 group-hover:-translate-x-1"
+                        : "group-hover:translate-x-1"
+                    }`}
                   />
-                </button>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
 
         <div className="text-center mt-10">
           <button
-            onClick={() => router.push('/user')}
+            onClick={() => router.push("/user")}
             className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center mx-auto group"
           >
-            {t('home_viewAllVehicles')}
+            {t("home_viewAllVehicles")}
             <ArrowRight
-              className={`ml-2 h-5 w-5 transform transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
+              className={`ml-2 h-5 w-5 transform transition-transform duration-300 ${
+                isRtl
+                  ? "rotate-180 group-hover:-translate-x-1"
+                  : "group-hover:translate-x-1"
+              }`}
             />
           </button>
         </div>
       </div>
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
     </div>
-  )
-}
-
-
+  );
+};
 
 // Call To Action
-const CallToAction = ({ t, isRtl }: {t: TranslationFn, isRtl: boolean}) => {
-  const router = useRouter()
- 
+const CallToAction = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
+  const router = useRouter();
 
   return (
     <div className="bg-white text-gray-900 py-20 relative overflow-hidden">
@@ -574,28 +682,34 @@ const CallToAction = ({ t, isRtl }: {t: TranslationFn, isRtl: boolean}) => {
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
       <div className="absolute inset-0 bg-[url('/placeholder.svg?height=100&width=100')] bg-repeat opacity-5"></div>
       <div className="container mx-auto px-4 text-center relative z-10">
-        <h2 className="text-3xl font-bold mb-4">{t('home_readyExperience')}</h2>
-        <p className="max-w-2xl mx-auto mb-8 text-gray-600">{t('home_joinExclusive')}</p>
+        <h2 className="text-3xl font-bold mb-4">{t("home_readyExperience")}</h2>
+        <p className="max-w-2xl mx-auto mb-8 text-gray-600">
+          {t("home_joinExclusive")}
+        </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => router.push("/signup")}
             className="px-8 py-4 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-all duration-300 shadow-md hover:shadow-lg group"
           >
-            {t('home_createAccount')}
+            {t("home_createAccount")}
             <ArrowRight
-              className={`ml-2 h-5 w-5 inline-block  transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : " group-hover:translate-x-1"}`}
+              className={`ml-2 h-5 w-5 inline-block  transition-transform duration-300 ${
+                isRtl
+                  ? "rotate-180 group-hover:-translate-x-1"
+                  : " group-hover:translate-x-1"
+              }`}
             />
           </button>
           <button
             onClick={() => router.push("/learn-more")}
             className="px-8 py-4 bg-transparent border border-blue-800 text-blue-800 font-medium rounded-lg hover:bg-blue-50 transition-all duration-300"
           >
-            {t('home_learnMore')}
+            {t("home_learnMore")}
           </button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default LuxuryAutoLanding
+export default LuxuryAutoLanding;
