@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect , useMemo} from "react"
 import {
   User,
   Store,
@@ -8,7 +8,10 @@ import {
   BarChart,
   ChevronRight,
   Check,
-  
+  Settings,
+  Fuel,
+  Gauge,
+  Calendar,
   Lock,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -20,11 +23,13 @@ import { Language } from "../providers/LanguageContext"
 import type { TranslationFn } from "@/providers/LanguageContext"
 import Header from "@/components/Header"
 import { carService } from "@/lib/carService"
+import type { CarData } from "@/types/carTypes"
+import { useQuery } from "@tanstack/react-query"
 
 
 const LuxuryAutoLanding = () => {
   const { language, isRtl, t } = useLanguage()
-
+  
   return (
     <div
       className={`min-h-screen bg-white ${language === "ar" ? "rtl text-right" : "ltr text-left"}`}
@@ -33,7 +38,7 @@ const LuxuryAutoLanding = () => {
       < Header />
       <Hero  t={t} isRtl={isRtl} />
       <UserTypeSection language={language} t={t} isRtl={isRtl} />
-      {/* <FeaturedCars  t={t} isRtl={isRtl} /> */}
+      <FeaturedCars  t={t} isRtl={isRtl} />
       <CallToAction  t={t} isRtl ={isRtl} />
       <Footer t={t} isRtl={isRtl}  />
     </div>
@@ -392,109 +397,170 @@ const UserTypeSection = ({ language,t, isRtl } : { language : Language, t: Trans
 }
 
 // FeaturedCars Section
-// const FeaturedCars = ({  t, isRtl }: {  t: TranslationFunction, isRtl: boolean}) => {
-//   const router = useRouter()
-//   const [featuredCars, setFeaturedCars] = useState<CarData[]>([])
+const FeaturedCars = ({ t, isRtl }: { t: TranslationFn, isRtl: boolean }) => {
+  const router = useRouter()
   
-//   useEffect(() => {
-//     const getFeaturedCars = async () => {
-//       try {
-//         const data = await fetchAllCars()
-//         console.log(data)
-//         // Filter out undefined entries and limit to 4 cars
-//         const validCars = data.filter((car): car is CarData => car !== undefined && car !== null).slice(0, 4)
-//         setFeaturedCars(validCars)
-//       } catch (error) {
-//         console.error(error)
-//         setFeaturedCars([]) // Set empty array on error
-//       }
-//     }
-//     getFeaturedCars()
-//   }, [])
+  const { data: cars, isLoading, error } = useQuery<CarData[]>({
+    queryKey: ['cars'],
+    queryFn: () => carService.getAllCars()
+  })
 
-//   return (
-//     <div className="py-20 bg-white relative overflow-hidden" id="cars">
-//       <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-//       <div className="container mx-auto px-4">
-//         <div className="text-center mb-12">
-//           <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_featuredVehicles')}</h2>
-//           <p className="text-gray-600 max-w-2xl mx-auto">{t('home_featuredVehiclesDesc')}</p>
-//           <div className="w-20 h-1 bg-blue-800 mx-auto mt-6"></div>
-//         </div>
+  // Filter and limit to 4 featured cars
+  const featuredCars = useMemo(() => {
+    if (!cars) return []
+    return cars
+      .filter((car): car is CarData => car !== undefined && car !== null)
+      .slice(0, 4)
+  }, [cars])
 
-//         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-//           {featuredCars.map((car) => (
-//             <div
-//               key={car.id}
-//               onClick={() => router.push(`/product?id=${car.id}`)}
-//               className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
-//             >
-//               <div className="relative h-48 overflow-hidden">
-//                 <img
-//                   src={car.image || "/placeholder.svg"}
-//                   alt={car.title}
-//                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-//                 />
-//                 <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
-//                   {t('home_premium')}
-//                 </div>
-//               </div>
+  if (isLoading) {
+    return (
+      <div className="py-20 bg-white relative overflow-hidden" id="cars">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+        <div className="container mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-300 rounded mb-4 mx-auto w-64"></div>
+              <div className="h-4 bg-gray-300 rounded mb-6 mx-auto w-96"></div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100">
+                    <div className="h-48 bg-gray-300"></div>
+                    <div className="p-4">
+                      <div className="h-4 bg-gray-300 rounded mb-2"></div>
+                      <div className="h-4 bg-gray-300 rounded mb-4 w-24"></div>
+                      <div className="grid grid-cols-2 gap-2 mb-4">
+                        <div className="h-3 bg-gray-300 rounded"></div>
+                        <div className="h-3 bg-gray-300 rounded"></div>
+                        <div className="h-3 bg-gray-300 rounded"></div>
+                        <div className="h-3 bg-gray-300 rounded"></div>
+                      </div>
+                      <div className="h-8 bg-gray-300 rounded"></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+      </div>
+    )
+  }
 
-//               <div className="p-4">
-//                 <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
-//                 <p className="text-blue-800 font-bold text-lg mb-2">{car.price.toLocaleString()} DA</p>
+  if (error) {
+    return (
+      <div className="py-20 bg-white relative overflow-hidden" id="cars">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+        <div className="container mx-auto px-4 text-center">
+          <div className="text-red-600 mb-4">
+            <h3 className="text-xl font-semibold mb-2">{t('home_errorLoadingVehicles')}</h3>
+            <p>{t('home_pleaseTryAgainLater')}</p>
+          </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+      </div>
+    )
+  }
 
-//                 <div className="grid grid-cols-2 gap-2 mb-4">
-//                   <div className="flex items-center text-xs text-gray-600">
-//                     <Calendar className="h-3 w-3 mr-1 text-blue-800" />
-//                     <span>{car.year}</span>
-//                   </div>
-//                   <div className="flex items-center text-xs text-gray-600">
-//                     <Gauge className="h-3 w-3 mr-1 text-blue-800" />
-//                     <span>{car.mileage.toLocaleString()} km</span>
-//                   </div>
-//                   <div className="flex items-center text-xs text-gray-600">
-//                     <Fuel className="h-3 w-3 mr-1 text-blue-800" />
-//                     <span>{car.fuel}</span>
-//                   </div>
-//                   <div className="flex items-center text-xs text-gray-600">
-//                     <Settings className="h-3 w-3 mr-1 text-blue-800" />
-//                     <span>{car.transmission}</span>
-//                   </div>
-//                 </div>
+  if (featuredCars.length === 0) {
+    return (
+      <div className="py-20 bg-white relative overflow-hidden" id="cars">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_featuredVehicles')}</h2>
+          <p className="text-gray-600">No vehicles available at the moment</p>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+      </div>
+    )
+  }
 
-//                 <button
-//                   onClick={() => router.push(`/product?id=${car.id}`)}
-//                   className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center group"
-//                 >
-//                   {t('home_viewDetails')}
-//                   <ChevronRight
-//                     className={`ml-1 h-4 w-4 transition-transform duration-300  ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
-//                   />
-//                 </button>
-//               </div>
-//             </div>
-//           ))}
-//         </div>
+  return (
+    <div className="py-20 bg-white relative overflow-hidden" id="cars">
+      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('home_featuredVehicles')}</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">{t('home_featuredVehiclesDesc')}</p>
+          <div className="w-20 h-1 bg-blue-800 mx-auto mt-6"></div>
+        </div>
 
-//         <div className="text-center mt-10">
-//           <button
-//             onClick={() => router.push('/user')}
-//             className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center mx-auto group"
-//           >
-//             {t('home_viewAllVehicles')}
-//             <ArrowRight
-//               className={`ml-2 h-5 w-5 transform  transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
-//             />
-//           </button>
-//         </div>
-//       </div>
-//       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
-//     </div>
-//   )
-// }
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {featuredCars.map((car) => (
+            <div
+              key={car.id}
+              onClick={() => router.push(`/product?id=${car.id}`)}
+              className="bg-white rounded-xl shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
+            >
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={car.images[car.imageIndex] || "/placeholder.svg"}
+                  alt={car.title}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
+                  {t('home_premium')}
+                </div>
+              </div>
 
-// Testimonials
+              <div className="p-4">
+                <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
+                <p className="text-blue-800 font-bold text-lg mb-2">{car.price.toLocaleString()} DA</p>
+
+                <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="flex items-center text-xs text-gray-600">
+                    <Calendar className="h-3 w-3 mr-1 text-blue-800" />
+                    <span>{car.year}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <Gauge className="h-3 w-3 mr-1 text-blue-800" />
+                    <span>{car.mileage.toLocaleString()} km</span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <Fuel className="h-3 w-3 mr-1 text-blue-800" />
+                    <span>{car.fuel}</span>
+                  </div>
+                  <div className="flex items-center text-xs text-gray-600">
+                    <Settings className="h-3 w-3 mr-1 text-blue-800" />
+                    <span>{car.transmission}</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    router.push(`/product?id=${car.id}`)
+                  }}
+                  className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center group"
+                >
+                  {t('home_viewDetails')}
+                  <ChevronRight
+                    className={`ml-1 h-4 w-4 transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
+                  />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-10">
+          <button
+            onClick={() => router.push('/user')}
+            className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center mx-auto group"
+          >
+            {t('home_viewAllVehicles')}
+            <ArrowRight
+              className={`ml-2 h-5 w-5 transform transition-transform duration-300 ${isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"}`}
+            />
+          </button>
+        </div>
+      </div>
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
+    </div>
+  )
+}
+
 
 
 // Call To Action

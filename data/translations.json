@@ -63,6 +63,9 @@
     "home_viewAllVehicles": "Voir Toutes les Voitures",
     "home_featureNotUnlocked": "Cette fonctionnalité arrive bientôt. Restez connectés !",
     "home_warningLogin": "Connectez-vous pour profiter de cette fonctionnalité.",
+    "home_errorLoadingVehicles": "Erreur de chargement des véhicules",
+    "home_pleaseTryAgainLater": "Veuillez réessayer plus tard",
+
 
     "login_tonobilti": "Tonobilti",
     "login_welcomeBack": "Bon Retour",
@@ -832,6 +835,9 @@
     "home_viewAllVehicles": "شاهد كل السيارات",
     "home_featureNotUnlocked": "هذه الخدمة قريبًا. استنونا!",
     "home_warningLogin": "سجل دخولك عشان تستفيد من هذه الخدمة.",
+    "home_errorLoadingVehicles": "خطأ في تحميل المركبات",
+    "home_pleaseTryAgainLater": "يرجى المحاولة مرة أخرى لاحقًا",
+
    
 
     "login_tonobilti": "تونوبيلتي",

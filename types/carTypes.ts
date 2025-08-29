@@ -1,0 +1,30 @@
+export type CarData =  {
+    id: string;
+    acceleration: number;
+    available: boolean;
+    availableHere: boolean;
+    bodyType: string;
+    color: string;
+    dimensions: string;
+    engine: string;
+    engineDispl: number;
+    featured: boolean;
+    features: string[];
+    fuel:string;
+    horsepower: string;
+    imageIndex: number;
+    images: string[];
+    interiorColor: string;
+    location: string;
+    maker: string;
+    mileage: number;
+    price: number;
+    seats: number;
+    title: string;
+    topSpeed: number;
+    transmission: string;
+    warranty: string;
+    weight: number;
+    year: number;
+    created_at: string;
+} 
