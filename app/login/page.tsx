@@ -62,8 +62,10 @@ const LoginPage: React.FC = () => {
     try {
         const user = await login(email, password);
         if (user) {
-            console.log("Login successful:", user);
-            toast.success("Successfully logged in");
+            toast.success(t('login_success'));
+            setTimeout(() => {
+              router.push("/user");
+            },1500)
         }
     } catch (error) {
         console.error("Login error:", error);
