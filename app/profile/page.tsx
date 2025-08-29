@@ -23,10 +23,6 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
-import Link from "next/link";
-import { CarData } from "@/types/carTypes";
-import { userService } from "@/lib/userService";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import Image from "next/image";
 
 interface OrderInfo {
@@ -87,31 +83,7 @@ const UserProfilePage: React.FC = () => {
   const router = useRouter();
   const { language, setLanguage, t, isRtl } = useLanguage(); // Default to French
   const [orders, setOrders] = useState<OrderInfo[]>([]);
-  const queryClient = useQueryClient()
-  const {
-    data: favoritesData,
-    isLoading: favoritesLoading,
-    error: favoritesError,
-    refetch: refetchFavorites,
-  } = useQuery({
-    queryKey: ["favorites"],
-    queryFn: () => userService.getFavorites(user!.id),
-    enabled: !!user?.id && !isLoading, // Only run when user.id exists
-    staleTime: 5 * 60 * 1000,
-  });
-    const removeFavoriteMutation = useMutation({
-    mutationFn: ({ userId, carId }: { userId: string; carId: string }) => 
-      userService.removeFavorite(userId, carId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["favorites"]});
-      queryClient.invalidateQueries({ queryKey: ["favoriteIds"]})
-    }
-  });
-
-  // Extract car data from favorites response
-  console.log("Raw favorites data:", favoritesData);
-  const favorites = favoritesData?.map((fav) => fav.cars).filter(Boolean) || [];
-  console.log("Processed favorites:", favorites);
+  
   
   useEffect(() => {
     setOrders(mockOrders);
@@ -199,80 +171,7 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
-  // Car card component for favorites and recent views
-  const CarCard: React.FC<{ car: CarData }> = ({ car }) => {
-    const removeFavoriteFront = async (): Promise<void> => {
-      try {
-        if (!user?.id) {
-          alert("User Not Found");
-          return;
-        }
-        const response = removeFavoriteMutation.mutate({ userId: user.id, carId: car.id });
-        console.log(response);
-        refetchFavorites();
-      } catch (error) {
-        console.log(error);
-        return;
-      }
-    };
-
-    return (
-      <div className="bg-white rounded-xl shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl border border-blue-100 flex flex-col group hover:-translate-y-1">
-        <div className="relative">
-          <Image
-            width={300}
-            height={300}
-            src={
-              car.images[car.imageIndex] 
-            }
-            alt={car.title}
-            className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-105"
-            loading="lazy"
-          />
-          <button
-            className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transition-colors"
-            aria-label={`Remove ${car.title} from favorites`}
-            onClick={() => removeFavoriteFront()}
-          >
-            <Heart className="h-5 w-5 fill-blue-500 text-blue-500" />
-          </button>
-        </div>
-        <div className="p-4 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900 mb-1 line-clamp-1 group-hover:text-blue-800 transition-colors">
-              {car.title}
-            </h3>
-            <p className="text-gray-600 text-sm flex items-center">
-              <MapPin
-                className={`h-3.5 w-3.5 ${
-                  isRtl ? "ml-1" : "mr-1"
-                } text-blue-500`}
-              />
-              {car.location}
-            </p>
-          </div>
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-blue-800 font-bold">
-              {car.price?.toLocaleString() || "0"} DA
-            </div>
-            <Link
-              href={`/product?id=${car.id}`}
-              className="px-3 py-1.5 bg-blue-800 text-white text-sm font-medium rounded-lg hover:bg-blue-900 transition-colors flex items-center group"
-              aria-label={`View details for ${car.title}`}
-              prefetch={true}
-            >
-              {t("profile_viewDetails")}
-              <ChevronRight
-                className={`${
-                  isRtl ? "mr-1 rotate-180" : "ml-1"
-                } h-4 w-4 opacity-70 group-hover:translate-x-1 transition-transform duration-300`}
-              />
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  
 
   if (isLoading) {
     return (
@@ -402,21 +301,7 @@ const UserProfilePage: React.FC = () => {
                   />
                   {t("profile_personalInfo")}
                 </button>
-                <button
-                  className={`py-4 px-1 font-medium text-sm border-b-2 ${
-                    activeTab === "favorites"
-                      ? "border-blue-800 text-blue-800"
-                      : "border-transparent text-gray-500 hover:text-blue-800 hover:border-blue-300"
-                  } transition-colors whitespace-nowrap`}
-                  onClick={() => setActiveTab("favorites")}
-                >
-                  <Heart
-                    className={`inline-block h-4 w-4 ${
-                      isRtl ? "ml-2" : "mr-2"
-                    }`}
-                  />
-                  {t("profile_favorites")}
-                </button>
+                
                 <button
                   className={`py-4 px-1 font-medium text-sm border-b-2 ${
                     activeTab === "orders"
@@ -561,81 +446,6 @@ const UserProfilePage: React.FC = () => {
             </div>
           )}
 
-          {activeTab === "favorites" && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">
-                    {t("profile_favoriteVehicles")}
-                  </h3>
-                  <p className="text-blue-800 text-sm mt-1">
-                    {t("profile_savedPremiumVehicles")}
-                  </p>
-                </div>
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                  {favorites.length} {t("profile_vehicles")}
-                </span>
-              </div>
-
-              {favoritesLoading ? (
-                <div className="text-center py-16">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                  <p className="mt-4 text-blue-600 font-medium">
-                    Loading favorites...
-                  </p>
-                </div>
-              ) : favoritesError ? (
-                <div className="text-center py-16 bg-red-50 rounded-xl border border-red-100">
-                  <div className="h-16 w-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-red-500 border border-red-200">
-                    <AlertCircle className="h-8 w-8" />
-                  </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">
-                    Error loading favorites
-                  </h4>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    There was an error loading your favorite vehicles.
-                  </p>
-                  <button
-                    className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors shadow-md flex items-center mx-auto group"
-                    onClick={() => refetchFavorites()}
-                  >
-                    Try Again
-                  </button>
-                </div>
-              ) : favorites.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {favorites.map((car) => (
-                    <CarCard key={car.id} car={car} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16 bg-blue-50 rounded-xl border border-blue-100">
-                  <div className="h-16 w-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-blue-500 border border-blue-200">
-                    <Heart className="h-8 w-8" />
-                  </div>
-                  <h4 className="text-xl font-bold text-gray-900 mb-2">
-                    {t("profile_noFavoriteVehicles")}
-                  </h4>
-                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    {t("profile_startBrowsing")}
-                  </p>
-                  <button
-                    className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors shadow-md flex items-center mx-auto group"
-                    onClick={() => router.push("/user")}
-                  >
-                    {t("profile_browseVehicles")}
-                    <ChevronRight
-                      className={`${
-                        isRtl
-                          ? "mr-2 group-hover:-translate-x-1"
-                          : "ml-2 group-hover:translate-x-1"
-                      } h-5 w-5 transition-transform`}
-                    />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
           {activeTab === "orders" && (
             <div>
               <div className="flex justify-between items-center mb-6">

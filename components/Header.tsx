@@ -202,13 +202,7 @@ const Header = () => {
                   {t("header_learnMore")}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-800 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-700 hover:text-blue-800 font-medium transition-colors duration-300 relative group text-center"
-                >
-                  {t("header_about")}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-800 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
+                
               </nav>
             </div>
 
@@ -277,13 +271,7 @@ const Header = () => {
                 >
                   {t("header_learnMore")}
                 </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-700 hover:text-blue-800 font-medium py-2 transition-colors duration-300"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t("header_about")}
-                </Link>
+                
               </nav>
               <div className="pt-3 border-t border-gray-100 grid grid-cols-2 gap-3">
                 <Link
@@ -361,13 +349,7 @@ const Header = () => {
                   {t("header_learnMore")}
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-800 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-700 hover:text-blue-800 font-medium transition-colors duration-300 relative group text-center"
-                >
-                  {t("header_about")}
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-800 transition-all duration-300 group-hover:w-full"></span>
-                </Link>
+               
               </nav>
             </div>
 
