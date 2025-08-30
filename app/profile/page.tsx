@@ -24,6 +24,8 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
+import { orderService } from "@/lib/orderService";
 
 interface OrderInfo {
   id: string;
@@ -83,6 +85,11 @@ const UserProfilePage: React.FC = () => {
   const router = useRouter();
   const { language, setLanguage, t, isRtl } = useLanguage(); // Default to French
   const [orders, setOrders] = useState<OrderInfo[]>([]);
+  const { data} = useQuery({
+    queryKey: ['orders'],
+    queryFn: () => orderService.getOrders,
+    staleTime: 1000 * 60 * 120,
+  })
   
   
   useEffect(() => {

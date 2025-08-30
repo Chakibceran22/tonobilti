@@ -1,7 +1,7 @@
 // src/app/product/[id]/CarDetailClientComponent.tsx (Client Component)
 "use client";
 
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 import {
   Car,
   Calendar,
@@ -39,7 +39,7 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
   const [showShareTooltipState, setShowShareTooltipState] =
     useState<boolean>(false);
   const { language, setLanguage, t, isRtl } = useLanguage();
-  const { data: car , isLoading: loading, isError} = useQuery<CarData>({
+  const { data: car , isLoading} = useQuery<CarData>({
     queryKey:['cars', id],
     queryFn:() => carService.getCarById(id),
     staleTime: 5 * 1000 * 60
@@ -138,8 +138,8 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
     }
   };
 
-  // Loading skeleton UI
-  if (loading) {
+  // isLoading skeleton UI
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white overflow-y-auto">
         {/* Header skeleton */}
