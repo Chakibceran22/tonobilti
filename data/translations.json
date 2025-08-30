@@ -468,7 +468,9 @@
     "checkout_shippingOptions": "Options de Livraison",
     "checkout_customsClearanceTitle": "Options de Dédouanement",
     "checkout_estimatedPricing": "Les prix affichés sont des estimations et peuvent varier selon les conditions du marché.",
-    
+    "checkout_carNotFound": "Voiture introuvable",
+    "checkout_carLoadError": "Erreur lors du chargement de la voiture",
+    "checkout_backToCars": "Retour aux voitures",
    
     "checkout_shippingOptionsTitle": "Options de Livraison Maritime",
     "checkout_chooseShippingMethod": "Choisissez votre méthode de livraison préférée",
@@ -1248,9 +1250,11 @@
     "checkout_infoBullet1": "راح نسلم السيارة في أقرب ميناء جزائري",
     "checkout_infoBullet2": "اختر بين خدمة شاملة أو تخليص جمركي شخصي",
     "checkout_shippingOptions": "خيارات الشحن",
-  "checkout_customsClearanceTitle": "خيارات التخليص الجمركي",
-      "checkout_estimatedPricing": "الأسعار المعروضة تقديرية وقد تختلف حسب ظروف السوق.",
-
+    "checkout_customsClearanceTitle": "خيارات التخليص الجمركي",
+    "checkout_estimatedPricing": "الأسعار المعروضة تقديرية وقد تختلف حسب ظروف السوق.",
+    "checkout_carNotFound": "السيارة غير موجودة",
+    "checkout_carLoadError": "حدث خطأ أثناء تحميل السيارة",
+    "checkout_backToCars": "الرجوع إلى السيارات",
 
   "checkout_shippingOptionsTitle": "خيارات الشحن البحري",
   "checkout_chooseShippingMethod": "اختر طريقة الشحن المفضلة لديك",

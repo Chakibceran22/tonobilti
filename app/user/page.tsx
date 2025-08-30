@@ -52,6 +52,7 @@ const CarListingPage: React.FC = () => {
   } = useQuery<CarData[]>({
     queryKey: ["cars"],
     queryFn: carService.getAllCars,
+    staleTime: 1000 * 60 * 60,
     retry: 3,
     retryDelay: 1000,
   });
