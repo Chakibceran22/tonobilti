@@ -17,7 +17,6 @@ import {
   Globe,
   Clock,
   Ship,
-  
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import wilayas from "@/data/wilaya.json";
@@ -28,25 +27,11 @@ import type { CarData } from "@/types/carTypes";
 import useAuth from "@/hooks/useAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { carService } from "@/lib/carService";
-import { Order, OrderToSend } from "@/types/orderTypes";
+import {  OrderToSend } from "@/types/orderTypes";
 import { orderService } from "@/lib/orderService";
 import toast from "react-hot-toast";
-interface CheckoutClientComponentProps {
-  id: string;
-}
-
-interface Wilaya {
-  id: number;
-  code: string;
-  name: string;
-  ar_name: string;
-}
-
-interface City {
-  id: number;
-  name: string;
-}
-
+import { Comune, Comunes, Wilayas, Wilaya } from "@/types/locationTypes";
+import Image from "next/image";
 interface ShippingOption {
   id: string;
   name: string;
@@ -60,26 +45,30 @@ interface ShippingOption {
   maxDays: number;
 }
 
-
-
 const CheckoutClientComponent = ({ id }: { id: string }) => {
   const [step, setStep] = useState<number>(1);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [filteredCities, setFilteredCities] = useState<City[]>([]);
+  const [filteredCities, setFilteredCities] = useState<Comune[]>([]);
   const { language, setLanguage, t, isRtl } = useLanguage();
-  const {user, loading} = useAuth();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: car, isLoading, error, isError} = useQuery<CarData| undefined>({
-    queryKey:['cars',id],
+  const {
+    data: car,
+    isLoading,
+    error,
+    isError,
+  } = useQuery<CarData | undefined>({
+    queryKey: ["cars", id],
     queryFn: () => carService.getCarById(id),
     enabled: !!id,
     retry: 3,
-    retryDelay : attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
-  })
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+  });
   const addOrderMutation = useMutation({
-    mutationFn: async(order: OrderToSend ) =>  await orderService.addOrder(order),
+    mutationFn: async (order: OrderToSend) =>
+      await orderService.addOrder(order),
     onError: (error) => {
       console.error("Order submission error:", error);
       toast.error(t("checkout_orderError"));
@@ -87,14 +76,12 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     },
     onSuccess: () => {
       toast.success(t("checkout_orderPlacedSuccess"));
-      queryClient.invalidateQueries({queryKey : ['orders']});
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
       setIsSubmitting(false);
       // Optionally redirect to success page or orders page
       // router.push('/orders');
-    }
-  }) 
- 
-  
+    },
+  });
 
   // Get USD to DZD conversion rate from environment variables
   const USD_TO_DZD_RATE = process.env.NEXT_PUBLIC_USD_TO_DZD_RATE
@@ -144,8 +131,6 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     },
   ];
 
-
-
   const handleChangeWilaya = (
     e: React.ChangeEvent<HTMLSelectElement>
   ): void => {
@@ -154,29 +139,21 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
 
     // If wilaya changes, update available cities
     if (name === "state") {
-      const selectedWilaya = (wilayas as any).wilayas.find(
+      const selectedWilaya = (wilayas as Wilayas).wilayas.find(
         (w: Wilaya) => (language === "ar" ? w.ar_name : w.name) === value
       );
-      console.log(selectedWilaya);
       if (selectedWilaya) {
         const wilayaCode =
           selectedWilaya.code.length === 1
             ? `0${selectedWilaya.code}`
             : selectedWilaya.code;
-        console.log(wilayaCode);
-        // Filter communes that match the selected wilaya code
-        const matchingCities = (comunes as any).comunes
-          .filter((c: any) => c.wilaya_code === wilayaCode)
-          .map((c: any) => ({
-            id: c.id,
-            name: language === "ar" ? c.commune_name : c.commune_name_ascii,
-          }));
-        const finalCities = matchingCities.sort((a: City, b: City) =>
-          a.name.localeCompare(b.name)
-        );
-        console.log(finalCities);
+        const matchingCities = (comunes as Comunes).comunes
+          .filter((c: Comune) => c.wilaya_code === wilayaCode)
+          .sort((a: Comune, b: Comune) =>
+            a.commune_name_ascii.localeCompare(b.commune_name_ascii)
+          );
 
-        setFilteredCities(finalCities);
+        setFilteredCities(matchingCities);
       } else {
         setFilteredCities([]);
       }
@@ -200,7 +177,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     shippingOption: "",
     shippingPrice: 0,
 
-    user_id: user?.id || '',
+    user_id: user?.id || "",
     car_id: id,
     total: 0,
     status: "Pending",
@@ -259,10 +236,8 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     : 0;
 
   useEffect(() => {
-    setFormData(prev => ({ ...prev, total: total, user_id: user?.id || '' }));
+    setFormData((prev) => ({ ...prev, total: total, user_id: user?.id || "" }));
   }, [total, user?.id]);
-
-  
 
   // Check if device is mobile
   useEffect(() => {
@@ -319,15 +294,20 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
         toast.error("Please log in to place an order");
         return;
       }
-      
+
       // Validate required fields
-      if (!formData.phone || !formData.state || !formData.city || !formData.specificLocation) {
+      if (
+        !formData.phone ||
+        !formData.state ||
+        !formData.city ||
+        !formData.specificLocation
+      ) {
         toast.error("Please fill in all required fields");
         return;
       }
 
       setIsSubmitting(true);
-      
+
       // Update form data with latest user_id and total before submitting
       const orderData = {
         ...formData,
@@ -336,9 +316,9 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
         vehiclePrice: car?.price,
         portDeliveryFee: portDeliveryFeeDZD,
         serviceFee: serviceFee,
-        customsTax: dedouanementTax
+        customsTax: dedouanementTax,
       };
-      
+
       addOrderMutation.mutate(orderData);
     }
   };
@@ -369,7 +349,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     return (
       <div className="mb-8">
         <div className="flex justify-between relative">
-          {steps.map((s, i) => (
+          {steps.map((s) => (
             <div
               key={s.number}
               className="flex flex-col items-center relative z-1"
@@ -415,7 +395,6 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
   const renderLocationContactForm = () => {
     return (
       <div className="space-y-4 sm:space-y-6">
-       
         <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-4">
           {t("checkout_contactLocationInfo")}
         </h3>
@@ -465,7 +444,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
               required
             >
               <option value="">{t("checkout_selectWilaya")}</option>
-              {(wilayas as any).wilayas.map((state: Wilaya) => (
+              {(wilayas as Wilayas).wilayas.map((state: Wilaya) => (
                 <option
                   key={state.id}
                   value={language === "ar" ? state.ar_name : state.name}
@@ -510,8 +489,8 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
             >
               <option value="">{t("checkout_selectCity")}</option>
               {filteredCities.map((city) => (
-                <option key={city.id} value={city.name}>
-                  {city.name}
+                <option key={city.id} value={city.commune_name_ascii}>
+                  {language == 'ar' ? city.commune_name: city.commune_name_ascii}
                 </option>
               ))}
             </select>
@@ -630,7 +609,9 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
         </div>
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4">
           <p className="text-xs text-yellow-800">
-            <strong>Note:</strong> {t("checkout_estimatedPricing") || "Les prix affichés sont des estimations et peuvent varier selon les conditions du marché."}
+            <strong>Note:</strong>{" "}
+            {t("checkout_estimatedPricing") ||
+              "Les prix affichés sont des estimations et peuvent varier selon les conditions du marché."}
           </p>
         </div>
 
@@ -680,7 +661,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
   const renderDeliveryOptionsForm = () => {
     const vehicleAge = new Date().getFullYear() - (car?.year || 0);
     const isNewCar = (car?.mileage || 0) === 0;
-    const dedouanementRate = isNewCar ? 45 : vehicleAge < 3 ? 30 : 30;
+    // const dedouanementRate = isNewCar ? 45 : vehicleAge < 3 ? 30 : 30;
 
     return (
       <div className="space-y-3 !text-xs">
@@ -920,9 +901,11 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
         {/* Car details */}
         <div className="flex items-center mb-6">
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-blue-100">
-            <img
+            <Image
+              width={300}
+              height = {300}
               src={car?.images[car?.imageIndex] || "/placeholder.svg"}
-              alt={car?.title}
+              alt={car?.title || "Car Image"}
               className="w-full h-full object-contain"
             />
           </div>
@@ -1029,10 +1012,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
           </div>
         </div>
 
-        {/* Additional information */}
-        <div className="mt-6 text-sm text-gray-600">
-          <p className="mt-2">Besoin d'aide ? Contactez notre équipe</p>
-        </div>
+       
       </div>
     );
   };
@@ -1075,33 +1055,35 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     );
   }
   if (isError || !car) {
-  return (
-    <div
-      className={`min-h-screen flex items-center justify-center bg-white ${
-        isRtl ? "rtl" : "ltr"
-      }`}
-      dir={isRtl ? "rtl" : "ltr"}
-    >
-      <div className="text-center max-w-md mx-auto px-4">
-        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Car className="w-8 h-8 text-red-600" />
+    return (
+      <div
+        className={`min-h-screen flex items-center justify-center bg-white ${
+          isRtl ? "rtl" : "ltr"
+        }`}
+        dir={isRtl ? "rtl" : "ltr"}
+      >
+        <div className="text-center max-w-md mx-auto px-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Car className="w-8 h-8 text-red-600" />
+          </div>
+          <h2 className="text-xl font-medium text-gray-900 mb-2">
+            {t("checkout_carNotFound") || "Véhicule non trouvé"}
+          </h2>
+          <p className="text-gray-600 mb-6">
+            {error?.message ||
+              t("checkout_carLoadError") ||
+              "Impossible de charger les informations du véhicule."}
+          </p>
+          <button
+            onClick={() => router.push("/cars")}
+            className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors"
+          >
+            {t("checkout_backToCars") || "Retour aux véhicules"}
+          </button>
         </div>
-        <h2 className="text-xl font-medium text-gray-900 mb-2">
-          {t("checkout_carNotFound") || "Véhicule non trouvé"}
-        </h2>
-        <p className="text-gray-600 mb-6">
-          {error?.message || t("checkout_carLoadError") || "Impossible de charger les informations du véhicule."}
-        </p>
-        <button
-          onClick={() => router.push('/cars')}
-          className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors"
-        >
-          {t("checkout_backToCars") || "Retour aux véhicules"}
-        </button>
       </div>
-    </div>
-  );
-}
+    );
+  }
 
   return (
     <div
