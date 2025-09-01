@@ -394,9 +394,9 @@ const CarListingPage: React.FC = () => {
           alt={car.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
+        {/* <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
           {t("home_premium")}
-        </div>
+        </div> */}
       </div>
 
       <div className="p-4">

@@ -28,7 +28,7 @@ import type { CarData } from "@/types/carTypes";
 import useAuth from "@/hooks/useAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { carService } from "@/lib/carService";
-import { Order } from "@/types/orderTypes";
+import { Order, OrderToSend } from "@/types/orderTypes";
 import { orderService } from "@/lib/orderService";
 import toast from "react-hot-toast";
 interface CheckoutClientComponentProps {
@@ -79,7 +79,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     retryDelay : attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   })
   const addOrderMutation = useMutation({
-    mutationFn: async(order: Order ) =>  await orderService.addOrder(order),
+    mutationFn: async(order: OrderToSend ) =>  await orderService.addOrder(order),
     onError: (error) => {
       console.error("Order submission error:", error);
       toast.error(t("checkout_orderError"));
@@ -187,7 +187,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
   };
 
   // Form state
-  const [formData, setFormData] = useState<Order>({
+  const [formData, setFormData] = useState<OrderToSend>({
     // Contact information
     phone: "",
 
