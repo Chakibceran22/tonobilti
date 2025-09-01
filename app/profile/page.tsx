@@ -26,7 +26,7 @@ import Footer from "@/components/Footer";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { orderService } from "@/lib/orderService";
-
+import { Order } from "@/types/orderTypes";
 interface OrderInfo {
   id: string;
   carTitle: string;
@@ -84,17 +84,19 @@ const UserProfilePage: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const router = useRouter();
   const { language, setLanguage, t, isRtl } = useLanguage(); // Default to French
-  const [orders, setOrders] = useState<OrderInfo[]>([]);
-  const { data} = useQuery({
+  // const [orders, setOrders] = useState<OrderInfo[]>([]);
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+
+  const { data: orders = []} = useQuery<Order[]>({
     queryKey: ['orders'],
-    queryFn: () => orderService.getOrders,
+    queryFn: () => orderService.getOrders(user?.id),
     staleTime: 1000 * 60 * 120,
   })
   
   
-  useEffect(() => {
-    setOrders(mockOrders);
-  },[])
+  // useEffect(() => {
+  //   setOrders(mockOrders);
+  // },[])
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "pending":
@@ -160,14 +162,23 @@ const UserProfilePage: React.FC = () => {
   }, []);
 
   // Auth state listener
-  useEffect(() => {
-    if (isLoading) return;
+// Auth state listener - Enhanced protection
+useEffect(() => {
+  // If still loading, don't do anything yet
+  if (isLoading) return;
 
-    if (!user) {
-      router.push("/");
-      return;
-    }
-  }, [user, isLoading, router]);
+  // If no user is found and we're not already redirecting
+  if (!user && !isRedirecting) {
+    setIsRedirecting(true);
+    router.push("/login"); // or wherever your login page is
+    return;
+  }
+
+  // If user exists, ensure we're not in redirecting state
+  if (user && isRedirecting) {
+    setIsRedirecting(false);
+  }
+}, [user, isLoading, router, isRedirecting]);
 
   const handleSignOut = async (): Promise<void> => {
     try {
@@ -180,18 +191,18 @@ const UserProfilePage: React.FC = () => {
 
   
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-blue-600 font-medium">
-            {t("profile_loading")}
-          </p>
-        </div>
+  if (isLoading || isRedirecting || (!user && !isLoading)) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+        <p className="mt-4 text-blue-600 font-medium">
+          {isRedirecting ? "Redirecting to login..." : t("profile_loading")}
+        </p>
       </div>
-    );
-  }
+    </div>
+  );
+}
 
   return (
     <div
@@ -479,7 +490,7 @@ const UserProfilePage: React.FC = () => {
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1">
-                              {order.carTitle}
+                              {order.cars?.title}
                             </h4>
                             <p className="text-sm text-gray-500">
                               Order #{order.id}
@@ -487,7 +498,7 @@ const UserProfilePage: React.FC = () => {
                           </div>
                           <span
                             className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${getStatusColor(
-                              order.status
+                              order.status.toLowerCase()
                             )}`}
                           >
                             {getStatusIcon(order.status)}
@@ -506,8 +517,8 @@ const UserProfilePage: React.FC = () => {
                           <Image
                             width={100}
                             height={100}
-                            src={order.carImage}
-                            alt={order.carTitle}
+                            src={order.cars?.images[order.cars.imageIndex] || "/placeholder.svg?height=300&width=400"}
+                            alt={order.cars?.title || "Car Image"}
                             className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                           />
                           <div className="flex-1 space-y-2">
@@ -518,7 +529,7 @@ const UserProfilePage: React.FC = () => {
                                 } text-blue-500`}
                               />
                               Ordered:{" "}
-                              {new Date(order.orderDate).toLocaleDateString(
+                              {new Date(order?.createdAt || '').toLocaleDateString(
                                 isRtl ? "ar-DZ" : "fr-FR"
                               )}
                             </div>
@@ -528,7 +539,7 @@ const UserProfilePage: React.FC = () => {
                                   isRtl ? "ml-2" : "mr-2"
                                 } text-blue-500`}
                               />
-                              {order.shippingAddress}
+                              {order.specificLocation}
                             </div>
                             <div className="flex items-center text-sm text-gray-600">
                               <Truck
@@ -536,45 +547,20 @@ const UserProfilePage: React.FC = () => {
                                   isRtl ? "ml-2" : "mr-2"
                                 } text-blue-500`}
                               />
-                              Tracking: {order.trackingNumber}
+                              Tracking: {order.id}
                             </div>
                           </div>
                         </div>
 
-                        {/* Seller Info */}
-                        <div className="bg-blue-50 rounded-lg p-3 mb-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                              <User
-                                className={`h-4 w-4 ${
-                                  isRtl ? "ml-2" : "mr-2"
-                                } text-blue-600`}
-                              />
-                              <span className="text-sm font-medium text-blue-800">
-                                {order.sellerName}
-                              </span>
-                            </div>
-                            <a
-                              href={`tel:${order.sellerPhone}`}
-                              className="flex items-center text-sm text-blue-600 hover:text-blue-800"
-                            >
-                              <Phone
-                                className={`h-4 w-4 ${isRtl ? "ml-1" : "mr-1"}`}
-                              />
-                              Contact
-                            </a>
-                          </div>
-                        </div>
+                       
 
                         {/* Order Footer */}
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="text-blue-800 font-bold text-lg">
-                              {order.totalAmount.toLocaleString()} DA
+                              {order.total.toLocaleString()} DA
                             </p>
-                            <p className="text-xs text-gray-500">
-                              Expected: {order.estimatedDeliveryTime}
-                            </p>
+                           
                           </div>
                           <button
                             onClick={() =>
