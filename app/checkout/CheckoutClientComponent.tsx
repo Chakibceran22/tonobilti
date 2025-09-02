@@ -70,8 +70,14 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     mutationFn: async (order: OrderToSend) =>
       await orderService.addOrder(order),
     onError: (error) => {
-      console.error("Order submission error:", error);
-      toast.error(t("checkout_orderError"));
+      console.error("Order submission error:", error.message);
+      if(error.message == 'duplicate key value violates unique constraint "unique_user_car"'){
+        toast.error(t('checkout_orderDoneBefore'))
+      }
+      else{
+        toast.error(t("checkout_orderError"));
+
+      }
       setIsSubmitting(false);
     },
     onSuccess: () => {
@@ -659,8 +665,8 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
 
   // Render delivery options form (now step 3)
   const renderDeliveryOptionsForm = () => {
-    const vehicleAge = new Date().getFullYear() - (car?.year || 0);
-    const isNewCar = (car?.mileage || 0) === 0;
+    // const vehicleAge = new Date().getFullYear() - (car?.year || 0);
+    // const isNewCar = (car?.mileage || 0) === 0;
     // const dedouanementRate = isNewCar ? 45 : vehicleAge < 3 ? 30 : 30;
 
     return (

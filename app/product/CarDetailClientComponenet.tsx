@@ -86,7 +86,7 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
             setShowShareTooltipState(false);
           }, 2000);
         })
-        .catch((err) => fallbackCopyToClipboard(text));
+        .catch(() => fallbackCopyToClipboard(text));
     } else {
       // Fallback for browsers that don't support Clipboard API
       fallbackCopyToClipboard(text);
@@ -352,7 +352,9 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
                     }`}
                     onClick={() => setCurrentImageIndex(index)}
                   >
-                    <img
+                    <Image
+                      width={1200}
+                      height={1200}
                       src={image || "/placeholder.svg"}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover rounded-sm"

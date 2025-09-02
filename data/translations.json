@@ -309,6 +309,14 @@
     "profile_enableTwoFactor": "Activer la Vérification en Deux Étapes",
     "profile_saveChanges": "Enregistrer les Modifications",
     "profile_cancel": "Annuler",
+    "profile_Orders": "Commandes",
+    "profile_Tracking": "Suivi",
+    "profile_TrackOrder": "Suivre la commande",
+    "profile_NoOrdersYet": "Pas encore de commandes",
+    "profile_NoOrdersMessage": "Vous n'avez pas encore passé de commande. Commencez à parcourir nos véhicules premium !",
+    "profile_BrowseVehicles": "Parcourir les véhicules",
+    "profile_MyOrders": "Mes commandes",
+    "profile_TrackYourVehiclePurchases": "Suivez vos achats de véhicules",
 
     "product_home": "Accueil",
     "product_vehicles": "Véhicules",
@@ -471,7 +479,7 @@
     "checkout_carNotFound": "Voiture introuvable",
     "checkout_carLoadError": "Erreur lors du chargement de la voiture",
     "checkout_backToCars": "Retour aux voitures",
-   
+    
     "checkout_shippingOptionsTitle": "Options de Livraison Maritime",
     "checkout_chooseShippingMethod": "Choisissez votre méthode de livraison préférée",
     "checkout_shippingStandard": "Livraison Standard",
@@ -505,6 +513,7 @@
    
     "checkout_orderPlacedSuccess": "Commande passée avec succès!",
     "checkout_orderError": "Une erreur s'est produite lors du passage de votre commande. Veuillez réessayer.",
+    "checkout_orderDoneBefore": "Vous avez déjà créé cette commande auparavant",
 
    "learnMore_pageTitle": "Options d'Importation de Voitures",
   "learnMore_backToCheckout": "Retour à l'Achat",
@@ -1093,6 +1102,14 @@
     "profile_enableTwoFactor": "تفعيل التحقق المزدوج",
     "profile_saveChanges": "احفظ التغييرات",
     "profile_cancel": "إلغاء",
+    "profile_Orders": "الطلبات",
+    "profile_Tracking": "تتبع",
+    "profile_TrackOrder": "تتبع الطلب",
+    "profile_NoOrdersYet": "لا توجد طلبات بعد",
+    "profile_NoOrdersMessage": "لم تقم بإجراء أي طلبات بعد. ابدأ في تصفح سياراتنا المميزة!",
+    "profile_BrowseVehicles": "تصفح السيارات",
+     "profile_MyOrders": "طلباتي",
+    "profile_TrackYourVehiclePurchases": "تتبع مشترياتك من المركبات",
 
     "product_home": "الرئيسية",
     "product_vehicles": "المركبات",
@@ -1255,6 +1272,8 @@
     "checkout_carNotFound": "السيارة غير موجودة",
     "checkout_carLoadError": "حدث خطأ أثناء تحميل السيارة",
     "checkout_backToCars": "الرجوع إلى السيارات",
+    "checkout_orderDoneBefore": "لقد قمت بإنشاء هذا الطلب من قبل",
+
 
   "checkout_shippingOptionsTitle": "خيارات الشحن البحري",
   "checkout_chooseShippingMethod": "اختر طريقة الشحن المفضلة لديك",

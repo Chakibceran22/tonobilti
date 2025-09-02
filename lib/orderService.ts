@@ -1,4 +1,4 @@
-import { Order, OrderToSend } from "@/types/orderTypes";
+import {  OrderToSend } from "@/types/orderTypes";
 import { supabase } from "./supabase";
 
 export const orderService = {
