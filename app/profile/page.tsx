@@ -3,7 +3,6 @@
 import { useState, useEffect} from "react";
 import {
   User,
-  Heart,
   LogOut,
   Calendar,
   MapPin,
@@ -47,36 +46,7 @@ interface OrderInfo {
   sellerPhone: string;
   estimatedDeliveryTime: string;
 }
-const mockOrders: OrderInfo[] = [
-    {
-      id: "ORD-2025-001",
-      carTitle: "BMW X5 2020 - Luxury SUV",
-      carImage: "/placeholder.svg?height=300&width=400",
-      orderDate: "2025-01-15",
-      expectedDelivery: "2025-01-20",
-      status: "shipped",
-      trackingNumber: "TRK123456789",
-      totalAmount: 4500000,
-      shippingAddress: "Alger, Algiers, Algeria",
-      sellerName: "Ahmed Benali",
-      sellerPhone: "+213 555 123 456",
-      estimatedDeliveryTime: "2-3 days",
-    },
-    {
-      id: "ORD-2025-002",
-      carTitle: "Mercedes C-Class 2019",
-      carImage: "/placeholder.svg?height=300&width=400",
-      orderDate: "2025-01-10",
-      expectedDelivery: "2025-01-18",
-      status: "delivered",
-      trackingNumber: "TRK987654321",
-      totalAmount: 3200000,
-      shippingAddress: "Oran, Algeria",
-      sellerName: "Fatima Zohra",
-      sellerPhone: "+213 555 987 654",
-      estimatedDeliveryTime: "Delivered",
-    },
-  ];
+
 
 const UserProfilePage: React.FC = () => {
   const { loading: isLoading, user, signOut } = useAuth();
@@ -84,7 +54,6 @@ const UserProfilePage: React.FC = () => {
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const router = useRouter();
   const { language, setLanguage, t, isRtl } = useLanguage(); // Default to French
-  // const [orders, setOrders] = useState<OrderInfo[]>([]);
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
 
   const { data: orders = []} = useQuery<Order[]>({
@@ -93,10 +62,6 @@ const UserProfilePage: React.FC = () => {
     staleTime: 1000 * 60 * 120,
   })
   
-  
-  // useEffect(() => {
-  //   setOrders(mockOrders);
-  // },[])
   const getStatusColor = (status: string): string => {
     switch (status) {
       case "pending":
@@ -333,7 +298,7 @@ useEffect(() => {
                       isRtl ? "ml-2" : "mr-2"
                     }`}
                   />
-                  Orders
+                  {t("profile_MyOrders")}
                 </button>
               </nav>
             </div>
@@ -468,13 +433,13 @@ useEffect(() => {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">My Orders</h3>
+                  <h3 className="text-xl font-bold text-gray-900">{t('profile_MyOrders')}</h3>
                   <p className="text-blue-800 text-sm mt-1">
-                    Track your vehicle purchases
+                    {t('profile_TrackYourVehiclePurchases')}
                   </p>
                 </div>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-full">
-                  {orders.length} Orders
+                  {orders.length} {t('profile_Orders')}
                 </span>
               </div>
 
@@ -493,7 +458,7 @@ useEffect(() => {
                               {order.cars?.title}
                             </h4>
                             <p className="text-sm text-gray-500">
-                              Order #{order.id}
+                              {t('profile_Orders')} #{order.id}
                             </p>
                           </div>
                           <span
@@ -547,7 +512,7 @@ useEffect(() => {
                                   isRtl ? "ml-2" : "mr-2"
                                 } text-blue-500`}
                               />
-                              Tracking: {order.id}
+                              {t('profile_Tracking')}: {order.id}
                             </div>
                           </div>
                         </div>
@@ -568,7 +533,7 @@ useEffect(() => {
                             }
                             className="px-4 py-2 bg-blue-800 text-white text-sm font-medium rounded-lg hover:bg-blue-900 transition-colors flex items-center group"
                           >
-                            Track Order
+                            {t('profile_TrackOrder')}
                             <ChevronRight
                               className={`${
                                 isRtl ? "mr-1 rotate-180" : "ml-1"
@@ -586,17 +551,16 @@ useEffect(() => {
                     <Package className="h-8 w-8" />
                   </div>
                   <h4 className="text-xl font-bold text-gray-900 mb-2">
-                    No orders yet
+                    {t('profile_NoOrdersYet')}
                   </h4>
                   <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                    You havent placed any orders yet. Start browsing our
-                    premium vehicles!
+                    {t('profile_NoOrdersMessage')}
                   </p>
                   <button
                     className="px-6 py-3 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-colors shadow-md flex items-center mx-auto group"
                     onClick={() => router.push("/user")}
                   >
-                    Browse Vehicles
+                    {t('profile_BrowseVehicles')}
                     <ChevronRight
                       className={`${
                         isRtl

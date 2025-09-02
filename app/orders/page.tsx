@@ -21,8 +21,7 @@ import {
 import { useLanguage } from "@/hooks/useLanguage";
 import { useAuth } from "@/hooks/useAuth";
 import Footer from "@/components/Footer";
-import L from "leaflet";
-
+import Image from "next/image";
 interface OrderInfo {
   id: string;
   carTitle: string;
@@ -849,7 +848,9 @@ const OrderDetailPage: React.FC = () => {
                   {t("order_vehicleInformation")}
                 </h3>
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                  <img
+                  <Image
+                    width={150}
+                    height={150}
                     src={orderInfo.carImage}
                     alt={orderInfo.carTitle}
                     className="w-full sm:w-32 h-48 sm:h-32 object-cover rounded-lg border border-gray-200"
@@ -971,7 +972,7 @@ const OrderDetailPage: React.FC = () => {
                 </div>
 
                 <div className="text-xl sm:text-2xl font-bold text-blue-800">
-                  ${orderInfo.totalAmount.toLocaleString()}
+                  {orderInfo.totalAmount.toLocaleString()} DA
                 </div>
               </div>
             </div>
