@@ -10,12 +10,14 @@ import { useAuth } from '@/hooks/useAuth';
 import logoImage from "@/public/logo.png";
 
 const Header = () => {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [desktopDropdownOpen, setDesktopDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const router = useRouter();
   const { language, setLanguage, isRtl, t } = useLanguage();
   const { user, loading: loadingUser, signOut } = useAuth();
-  const menuRef = useRef<HTMLDivElement>(null);
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Helper functions to safely get user data
   const getUserFullName = () => {
@@ -58,16 +60,29 @@ const Header = () => {
     router.push("/");
   };
 
-  // Close menu when clicking outside
+  // Close mobile menu when clicking on a link
+  const handleMobileMenuLinkClick = () => {
+    setMobileMenuOpen(false);
+  };
+
+  // Close desktop dropdown when clicking on a link
+  const handleDesktopDropdownLinkClick = () => {
+    setDesktopDropdownOpen(false);
+  };
+
+  // Close menus when clicking outside
   useEffect(() => {
-    const handleClickOutsideMenu = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setMenuOpen(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (desktopMenuRef.current && !desktopMenuRef.current.contains(event.target as Node)) {
+        setDesktopDropdownOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
       }
     };
-    document.addEventListener("mousedown", handleClickOutsideMenu);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutsideMenu);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -234,10 +249,10 @@ const Header = () => {
 
               {/* Mobile menu button */}
               <button
-                onClick={() => setMenuOpen(!menuOpen)}
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 text-gray-500 hover:text-blue-800 transition-colors duration-300"
               >
-                {menuOpen ? (
+                {mobileMenuOpen ? (
                   <X className="h-6 w-6" />
                 ) : (
                   <Menu className="h-6 w-6" />
@@ -247,27 +262,27 @@ const Header = () => {
           </div>
 
           {/* Mobile Menu */}
-          {menuOpen && (
-            <div className="md:hidden py-3 border-t border-gray-100 animate-fadeIn">
+          {mobileMenuOpen && (
+            <div className="md:hidden py-3 border-t border-gray-100 animate-fadeIn z-[60]" ref={mobileMenuRef}>
               <nav className="flex flex-col space-y-3 pb-3">
                 <Link
                   href="/"
                   className="text-gray-700 hover:text-blue-800 font-medium py-2 transition-colors duration-300"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_home")}
                 </Link>
                 <Link
                   href="/user"
                   className="text-gray-700 hover:text-blue-800 font-medium py-2 transition-colors duration-300"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_vehicles")}
                 </Link>
                 <Link
                   href="/learn-more"
                   className="text-gray-700 hover:text-blue-800 font-medium py-2 transition-colors duration-300"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_learnMore")}
                 </Link>
@@ -276,18 +291,14 @@ const Header = () => {
               <div className="pt-3 border-t border-gray-100 grid grid-cols-2 gap-3">
                 <Link
                   href={"/login"}
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleMobileMenuLinkClick}
                   className="py-2 text-gray-700 font-medium hover:text-blue-800 transition-colors duration-300"
                 >
                   {t("header_login")}
                 </Link>
                 <Link
                   href={"/signup"}
-                  onClick={() => {
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleMobileMenuLinkClick}
                   className="py-2 bg-blue-800 text-white font-medium rounded-lg hover:bg-blue-900 transition-all duration-300 shadow-sm hover:shadow-md text-center"
                 >
                   {t("header_signup")}
@@ -300,7 +311,7 @@ const Header = () => {
     );
   }
 
-  // THIRD: Logged in state - FIXED WITH CONSISTENT STYLING
+  // THIRD: Logged in state - FIXED VERSION
   if (user) {
     return (
       <header
@@ -369,7 +380,7 @@ const Header = () => {
               <div className="relative hidden md:block">
                 <button
                   className={`flex items-center cursor-pointer ${isRtl ? 'flex-row-reverse' : 'flex-row'}`}
-                  onClick={() => setMenuOpen(!menuOpen)}
+                  onClick={() => setDesktopDropdownOpen(!desktopDropdownOpen)}
                 >
                   <div className="h-10 w-10 rounded-full border-2 border-blue-500 bg-blue-100 flex items-center justify-center text-blue-700 font-medium">
                     {getUserInitials()}
@@ -384,11 +395,11 @@ const Header = () => {
                   </div>
                   <ChevronDown className={`ml-2 h-4 w-4 text-gray-500`} />
                 </button>
-                {menuOpen && (
+                {desktopDropdownOpen && (
                   <div
                     dir={isRtl ? "rtl" : "ltr"}
-                    ref={menuRef}
-                    className={`absolute mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 border border-blue-100 overflow-hidden z-[9999] ${
+                    ref={desktopMenuRef}
+                    className={`absolute mt-2 w-48 rounded-lg shadow-lg bg-white ring-1 ring-black ring-opacity-5 border border-blue-100 overflow-hidden z-[60] ${
                       isRtl ? "left-0" : "right-0"
                     }`}
                   >
@@ -399,7 +410,7 @@ const Header = () => {
                           isRtl ? "text-right" : "text-left"
                         }`}
                         role="menuitem"
-                        onClick={() => setMenuOpen(false)}
+                        onClick={handleDesktopDropdownLinkClick}
                       >
                         {t("header_yourProfile")}
                       </Link>
@@ -411,7 +422,7 @@ const Header = () => {
                         role="menuitem"
                         onClick={() => {
                           handleSignOut();
-                          setMenuOpen(false);
+                          setDesktopDropdownOpen(false);
                         }}
                       >
                         {t("header_signOut")}
@@ -423,10 +434,11 @@ const Header = () => {
 
               {/* Mobile menu button */}
               <button
-                onClick={() => setMenuOpen(!menuOpen)}
-                className="md:hidden p-2 text-gray-500 hover:text-blue-800 transition-colors duration-300"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="md:hidden p-2 text-gray-500 hover:text-blue-800 transition-colors duration-300 z-[70] relative"
+                aria-label="Toggle mobile menu"
               >
-                {menuOpen ? (
+                {mobileMenuOpen ? (
                   <X className="h-6 w-6" />
                 ) : (
                   <Menu className="h-6 w-6" />
@@ -435,39 +447,36 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Mobile Menu for Logged In Users */}
-          {menuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-100 animate-fadeIn">
+          {/* Mobile Menu for Logged In Users - FIXED VERSION */}
+          {mobileMenuOpen && (
+            <div 
+              className="md:hidden py-4 border-t border-gray-100 animate-fadeIn relative z-[60] bg-white"
+              ref={mobileMenuRef}
+            >
               {/* Navigation Links */}
               <nav className="flex flex-col space-y-1 mb-4">
                 <Link
                   href="/"
-                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50"
-                  onClick={() => setMenuOpen(false)}
+                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50 block w-full text-left"
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_home")}
                 </Link>
                 <Link
                   href="/user"
-                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50"
-                  onClick={() => setMenuOpen(false)}
+                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50 block w-full text-left"
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_vehicles")}
                 </Link>
                 <Link
                   href="/learn-more"
-                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50"
-                  onClick={() => setMenuOpen(false)}
+                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50 block w-full text-left"
+                  onClick={handleMobileMenuLinkClick}
                 >
                   {t("header_learnMore")}
                 </Link>
-                <Link
-                  href="/about"
-                  className="text-gray-700 hover:text-blue-800 font-medium py-3 px-2 transition-colors duration-300 rounded-lg hover:bg-blue-50"
-                  onClick={() => setMenuOpen(false)}
-                >
-                  {t("header_about")}
-                </Link>
+                
               </nav>
               
               {/* Mobile User Menu Section */}
@@ -489,8 +498,8 @@ const Header = () => {
                 <div className="space-y-1">
                   <Link
                     href="/profile"
-                    className={`block py-3 px-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-colors rounded-lg ${isRtl ? 'text-right' : 'text-left'}`}
-                    onClick={() => setMenuOpen(false)}
+                    className={`block py-3 px-2 text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-800 transition-colors rounded-lg w-full ${isRtl ? 'text-right' : 'text-left'}`}
+                    onClick={handleMobileMenuLinkClick}
                   >
                     {t("header_yourProfile")}
                   </Link>
@@ -499,7 +508,7 @@ const Header = () => {
                     className={`block w-full py-3 px-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors rounded-lg ${isRtl ? 'text-right' : 'text-left'}`}
                     onClick={() => {
                       handleSignOut();
-                      setMenuOpen(false);
+                      setMobileMenuOpen(false);
                     }}
                   >
                     {t("header_signOut")}
