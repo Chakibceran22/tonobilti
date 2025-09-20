@@ -49,7 +49,6 @@ const CarListingPage: React.FC = () => {
   const filterRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Get current page from URL, default to 1
   const currentPage = Number(searchParams.get("page")) || 1;
   const [carsPerPage] = useState<number>(12);
 
@@ -188,31 +187,35 @@ const CarListingPage: React.FC = () => {
     }
   };
 
-  // Close filter when clicking outside
   useEffect(() => {
-    if (!filterOpen) return;
+  if (!filterOpen) return;
 
-    const handleClickOutside = (event: MouseEvent): void => {
-      if (
-        filterRef.current &&
-        !filterRef.current.contains(event.target as Node) &&
-        filterButtonRef.current &&
-        !filterButtonRef.current.contains(event.target as Node)
-      ) {
-        setFilterOpen(false);
-      }
-    };
+  const handleClickOutside = (event: MouseEvent): void => {
+    if (
+      filterRef.current &&
+      !filterRef.current.contains(event.target as Node) &&
+      filterButtonRef.current &&
+      !filterButtonRef.current.contains(event.target as Node)
+    ) {
+      setFilterOpen(false);
+    }
+  };
 
-    const timer = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 100);
+  // Use a ref to track if listener was added
+  let listenerAdded = false;
+  
+  const timer = setTimeout(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    listenerAdded = true;
+  }, 100);
 
-    return () => {
-      clearTimeout(timer);
+  return () => {
+    clearTimeout(timer);
+    if (listenerAdded) {
       document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [filterOpen]);
-
+    }
+  };
+}, [filterOpen]);
   const handleSearch = (query: string): void => {
     if (!allCars) return;
     setSearchQuery(query);
