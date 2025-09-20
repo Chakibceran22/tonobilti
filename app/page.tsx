@@ -223,6 +223,7 @@ const Hero = memo(({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
     </div>
   );
 });
+Hero.displayName = "Hero";
 
 // User Type Section
 const UserTypeSection = memo(
@@ -501,6 +502,7 @@ const UserTypeSection = memo(
     );
   }
 );
+UserTypeSection.displayName = "UserTypeSection";
 
 // FeaturedCars Section
 const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
@@ -723,5 +725,6 @@ const CallToAction = memo(
     );
   }
 );
+CallToAction.displayName = "CallToAction";
 
 export default LuxuryAutoLanding;
