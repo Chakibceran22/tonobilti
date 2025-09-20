@@ -17,9 +17,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useLanguage } from "../hooks/useLanguage";
 import Footer from "@/components/Footer";
-// import { fetchAllCars } from '../utils/fetchAllCars'
 import { Language } from "../providers/LanguageContext";
-// import { CarData } from "../types/car"
 import type { TranslationFn } from "@/providers/LanguageContext";
 import Header from "@/components/Header";
 import { carService } from "@/lib/carService";
@@ -491,21 +489,15 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
   const router = useRouter();
 
   const {
-    data: cars,
+    data: cars = [],
     isLoading,
     error,
-  } = useQuery<CarData[]>({
+  } = useQuery<CarData[] >({
     queryKey: ["cars"],
-    queryFn: () => carService.getAllCars(),
+    queryFn: () => carService.getFirstFourCars(),
   });
 
-  // Filter and limit to 4 featured cars
-  const featuredCars = useMemo(() => {
-    if (!cars) return [];
-    return cars
-      .filter((car): car is CarData => car !== undefined && car !== null)
-      .slice(0, 4);
-  }, [cars]);
+  
 
   if (isLoading) {
     return (
@@ -562,7 +554,7 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
     );
   }
 
-  if (featuredCars.length === 0) {
+  if (cars.length === 0) {
     return (
       <div className="py-20 bg-white relative overflow-hidden" id="cars">
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-300 to-transparent"></div>
@@ -592,7 +584,7 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredCars.map((car) => (
+          {cars.map((car) => (
             <Link
               key={car.id}
               href={`/product?id=${car.id}`}
@@ -606,16 +598,11 @@ const FeaturedCars = ({ t, isRtl }: { t: TranslationFn; isRtl: boolean }) => {
                   alt={car.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
-                  {t("home_premium")}
-                </div>
+                
               </div>
 
               <div className="p-4">
                 <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
-                {/* <p className="text-blue-800 font-bold text-lg mb-2">
-          {car.price.toLocaleString()} DA
-        </p> */}
 
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   <div className="flex items-center text-xs text-gray-600">

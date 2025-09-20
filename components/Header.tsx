@@ -19,7 +19,6 @@ const Header = () => {
   const desktopMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Helper functions to safely get user data
   const getUserFullName = () => {
     if (!user) return "User";
     return user.user_metadata?.full_name || 
