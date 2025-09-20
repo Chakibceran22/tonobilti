@@ -15,7 +15,6 @@ import {
   Settings,
   ChevronLeft,
   RefreshCw,
-  
 } from "lucide-react";
 import Footer from "@/components/Footer";
 import { useLanguage } from "../../hooks/useLanguage";
@@ -26,6 +25,7 @@ import { carService } from "@/lib/carService";
 import { TranslationFn } from "@/providers/LanguageContext";
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 interface FilterState {
   maker: string;
@@ -41,23 +41,18 @@ interface CarCardProps {
 }
 
 const CarListingPage: React.FC = () => {
-  
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
   const [filterOpen, setFilterOpen] = useState<boolean>(false);
-  const {
-    data: cars,
-    isLoading: loading,
-    error,
-    isError,
-    refetch,
-  } = useQuery<CarData[]>({
-    queryKey: ["cars"],
-    queryFn: carService.getAllCars,
-    staleTime: 1000 * 60 * 60,
-    retry: 3,
-    retryDelay: 1000,
-  });
   const filterRef = useRef<HTMLDivElement>(null);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Get current page from URL, default to 1
+  const currentPage = Number(searchParams.get("page")) || 1;
+  const [carsPerPage] = useState<number>(12);
+
   const [filteredCars, setFilteredCars] = useState<CarData[]>([]);
   const [filter, setFilter] = useState<FilterState>({
     maker: "All Makes",
@@ -65,50 +60,316 @@ const CarListingPage: React.FC = () => {
     fuel: "All Types",
     bodyType: "All Body Types",
   });
+
+  // Get selected fuel filter for backend filtering
+  const selectedFuelFilter = filter.fuel !== "All Types" ? filter.fuel : undefined;
+
+  // Fetch paginated cars using server-side pagination with fuel filtering
+  const {
+    data: paginatedData,
+    isLoading: loading,
+    error,
+    isError,
+    refetch,
+  } = useQuery<CarData[]>({
+    queryKey: ["cars", "paginated", currentPage, carsPerPage, selectedFuelFilter],
+    queryFn: async () => {
+      const data = await carService.getPaginatedFilteredCars(currentPage, carsPerPage, selectedFuelFilter);
+      if (!data) {
+        throw new Error("Failed to fetch cars");
+      }
+      return data;
+    },
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+    retryDelay: 1000,
+  });
+
+  // Fetch all cars for filtering options only
+  const { data: allCars } = useQuery<CarData[]>({
+    queryKey: ["cars", "all"],
+    queryFn: carService.getAllCars,
+    staleTime: 1000 * 60 * 60,
+    retry: 3,
+    retryDelay: 1000,
+  });
+
+  // Fetch total count for current fuel filter for proper pagination
+  const { data: totalCarsCount } = useQuery<number>({
+    queryKey: ["cars", "count", selectedFuelFilter],
+    queryFn: () => carService.getFilteredCarsCount(selectedFuelFilter),
+    staleTime: 1000 * 60 * 5,
+    retry: 3,
+    retryDelay: 1000,
+  });
   const [selectedQuickFilter, setSelectedQuickFilter] = useState<
     "all" | "electric" | "bus"
   >("all");
 
-  // Pagination states
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [carsPerPage] = useState<number>(12);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [sortType, setSortType] = useState<string>("");
 
   const { t, isRtl } = useLanguage();
 
+  // Calculate display cars based on filters and search
+  // Fuel filtering is handled by backend, so only check for other active filters
+  const hasActiveClientFilters = 
+    filter.maker !== "All Makes" ||
+    filter.year !== "All Years" ||
+    filter.bodyType !== "All Body Types";
+    
   const displayCars =
-    filteredCars.length > 0 || selectedQuickFilter !== "all"
+    filteredCars.length > 0 ||
+    searchQuery ||
+    selectedQuickFilter !== "all" ||
+    sortType ||
+    hasActiveClientFilters
       ? filteredCars
-      : cars || [];
+      : paginatedData || [];
 
-  // Calculate pagination values
-  const indexOfLastCar = currentPage * carsPerPage;
-  const indexOfFirstCar = indexOfLastCar - carsPerPage;
-  const currentCars = displayCars.slice(indexOfFirstCar, indexOfLastCar);
-  const totalPages = Math.ceil(displayCars.length / carsPerPage);
+  // Use the filtered count for pagination when fuel filter is active, otherwise use all cars count
+  const totalCars = totalCarsCount ?? (allCars?.length || 0);
+  const totalPages = Math.ceil(totalCars / carsPerPage);
 
-  // Reset to page 1 when cars array changes (from filtering/searching)
+  // Update filtered cars when paginated data changes
   useEffect(() => {
-    setCurrentPage(1);
-  }, [displayCars.length]);
-
-  // Set initial filtered cars when data loads
-  useEffect(() => {
-    if (cars && filteredCars.length === 0 && selectedQuickFilter === "all") {
-      setFilteredCars(cars);
+    if (
+      paginatedData &&
+      !searchQuery &&
+      selectedQuickFilter === "all" &&
+      !sortType &&
+      !hasActiveClientFilters
+    ) {
+      setFilteredCars(paginatedData);
     }
-  }, [cars, filteredCars.length, selectedQuickFilter]);
+  }, [paginatedData, searchQuery, selectedQuickFilter, sortType, hasActiveClientFilters]);
 
-  // Set up userInfo when user and favoriteIds are available
-  
-
-  // Scroll to top when page changes
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [currentPage]);
-
+  // Handle page change by updating URL
   const handlePageChange = (pageNumber: number): void => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
-      setCurrentPage(pageNumber);
+      const params = new URLSearchParams(searchParams);
+      params.set("page", pageNumber.toString());
+      router.push(`${pathname}?${params.toString()}`);
+    }
+  };
+
+  // Reset to page 1 when filters change (fuel filter triggers backend refetch)
+  useEffect(() => {
+    if (
+      searchQuery ||
+      selectedQuickFilter !== "all" ||
+      hasActiveClientFilters ||
+      filter.fuel !== "All Types" // Reset page when fuel filter changes (backend)
+    ) {
+      const params = new URLSearchParams(searchParams);
+      params.set("page", "1");
+      router.push(`${pathname}?${params.toString()}`);
+    }
+  }, [
+    searchQuery,
+    selectedQuickFilter,
+    filter,
+    hasActiveClientFilters,
+    searchParams,
+    pathname,
+    router,
+  ]);
+
+  const handleSort = (sortType: string): void => {
+    if (!displayCars) return;
+    setSortType(sortType);
+
+    if (sortType === t("user_priceLowToHigh")) {
+      const sorted = [...displayCars].sort((a, b) => a.price - b.price);
+      setFilteredCars(sorted);
+    } else if (sortType === t("user_priceHighToLow")) {
+      const sorted = [...displayCars].sort((a, b) => b.price - a.price);
+      setFilteredCars(sorted);
+    }
+  };
+
+  // Close filter when clicking outside
+  useEffect(() => {
+    if (!filterOpen) return;
+
+    const handleClickOutside = (event: MouseEvent): void => {
+      if (
+        filterRef.current &&
+        !filterRef.current.contains(event.target as Node) &&
+        filterButtonRef.current &&
+        !filterButtonRef.current.contains(event.target as Node)
+      ) {
+        setFilterOpen(false);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      document.addEventListener("mousedown", handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [filterOpen]);
+
+  const handleSearch = (query: string): void => {
+    if (!allCars) return;
+    setSearchQuery(query);
+
+    const filtered = allCars.filter((car) =>
+      car?.title.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredCars(filtered);
+  };
+
+  const handleFilter = (): void => {
+    // Fuel filtering is now handled by backend, only apply other filters client-side
+    if (!paginatedData) return;
+
+    const filtered = paginatedData.filter((car) => {
+      const makerMatch =
+        filter.maker === "All Makes"
+          ? true
+          : car?.maker?.trim().toLowerCase() ===
+            filter.maker.trim().toLowerCase();
+
+      const yearMatch =
+        filter.year === "All Years"
+          ? true
+          : car?.year.toString() === filter.year;
+
+      const bodyTypeMatch =
+        filter.bodyType === "All Body Types"
+          ? true
+          : car?.bodyType?.trim().toLowerCase() ===
+            filter.bodyType.trim().toLowerCase();
+
+      return makerMatch && yearMatch && bodyTypeMatch;
+    });
+
+    setFilteredCars(filtered);
+    setFilterOpen(false);
+  };
+
+  const toggleFilter = (e?: React.MouseEvent): void => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setFilterOpen((prevState) => !prevState);
+  };
+
+  // Car card component
+  const CarCard: React.FC<CarCardProps> = ({ car, t, isRtl }) => {
+    return (
+      <Link
+        key={car.id}
+        href={`/product?id=${car.id}`}
+        className="block bg-white rounded-md shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
+      >
+        <div className="relative h-48 overflow-hidden">
+          <Image
+            width={350}
+            height={350}
+            src={car.images[car.imageIndex] || "/placeholder.svg"}
+            alt={car.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+
+        <div className="p-4">
+          <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
+
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            <div className="flex items-center text-xs text-gray-600">
+              <Calendar className="h-3 w-3 mr-1 text-blue-800" />
+              <span>{car.year}</span>
+            </div>
+            <div className="flex items-center text-xs text-gray-600">
+              <Gauge className="h-3 w-3 mr-1 text-blue-800" />
+              <span>{car.mileage.toLocaleString()} km</span>
+            </div>
+            <div className="flex items-center text-xs text-gray-600">
+              <Fuel className="h-3 w-3 mr-1 text-blue-800" />
+              <span>{car.fuel}</span>
+            </div>
+            <div className="flex items-center text-xs text-gray-600">
+              <Settings className="h-3 w-3 mr-1 text-blue-800" />
+              <span>{car.transmission}</span>
+            </div>
+          </div>
+
+          <div className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center">
+            {t("home_viewDetails")}
+            <ChevronRight
+              className={`ml-1 h-4 w-4 transition-transform duration-300 ${
+                isRtl
+                  ? "rotate-180 group-hover:-translate-x-1"
+                  : "group-hover:translate-x-1"
+              }`}
+            />
+          </div>
+        </div>
+      </Link>
+    );
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    handleSearch(e.target.value);
+  };
+
+  const handleFilterChange =
+    (field: keyof FilterState) =>
+    (e: React.ChangeEvent<HTMLSelectElement>): void => {
+      setFilter({ ...filter, [field]: e.target.value });
+    };
+
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
+    handleSort(e.target.value);
+  };
+
+  const resetFilters = (): void => {
+    setFilteredCars([]);
+    setSearchQuery("");
+    setSortType("");
+    setSelectedQuickFilter("all");
+    setFilter({
+      maker: "All Makes",
+      year: "All Years",
+      fuel: "All Types",
+      bodyType: "All Body Types",
+    });
+  };
+
+  const handleQuickFilter = (filterType: "all" | "electric" | "bus"): void => {
+    if (!allCars) return;
+
+    setSelectedQuickFilter(filterType);
+    setFilterOpen(false);
+
+    switch (filterType) {
+      case "all":
+        setFilteredCars([]);
+        break;
+      case "electric":
+        const electricCars = allCars.filter(
+          (car) =>
+            car?.fuel?.trim().toLowerCase().includes("electric") ||
+            car?.fuel?.trim().toLowerCase().includes("électrique")
+        );
+        setFilteredCars(electricCars);
+        break;
+      case "bus":
+        const buses = allCars.filter(
+          (car) =>
+            car?.bodyType?.trim().toLowerCase().includes("bus") ||
+            car?.title?.toLowerCase().includes("bus")
+        );
+        setFilteredCars(buses);
+        break;
+      default:
+        setFilteredCars([]);
     }
   };
 
@@ -116,16 +377,13 @@ const CarListingPage: React.FC = () => {
     const buttons = [];
     const maxVisiblePages = 5;
 
-    // Calculate the range of page numbers to show
     let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
     const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
 
-    // Adjust startPage if we're near the end
     if (endPage - startPage + 1 < maxVisiblePages) {
       startPage = Math.max(1, endPage - maxVisiblePages + 1);
     }
 
-    // Previous button
     buttons.push(
       <button
         key="prev"
@@ -142,7 +400,6 @@ const CarListingPage: React.FC = () => {
       </button>
     );
 
-    // Show first page if not in visible range
     if (startPage > 1) {
       buttons.push(
         <button
@@ -162,7 +419,6 @@ const CarListingPage: React.FC = () => {
       }
     }
 
-    // Page number buttons
     for (let i = startPage; i <= endPage; i++) {
       buttons.push(
         <button
@@ -181,7 +437,6 @@ const CarListingPage: React.FC = () => {
       );
     }
 
-    // Show last page if not in visible range
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         buttons.push(
@@ -201,7 +456,6 @@ const CarListingPage: React.FC = () => {
       );
     }
 
-    // Next button
     buttons.push(
       <button
         key="next"
@@ -221,278 +475,6 @@ const CarListingPage: React.FC = () => {
     return buttons;
   };
 
-  useEffect(() => {
-    // Only add the listener if the filter is open
-    if (!filterOpen) return;
-
-    const handleClickOutside = (event: MouseEvent): void => {
-      // Make sure we have a valid ref and the filter is open
-      if (
-        filterRef.current &&
-        !filterRef.current.contains(event.target as Node)
-      ) {
-        console.log("Closing filter from outside click");
-        setFilterOpen(false);
-      }
-    };
-
-    // Add the event listener with a slight delay to avoid immediate triggering
-    const timer = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 100);
-
-    // Cleanup function
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [filterOpen]); // Depend on filterOpen to re-establish listener when it changes
-
-  const handleSort = (sortType: string): void => {
-    if (!displayCars) return;
-
-    if (sortType === t("user_priceLowToHigh")) {
-      const sorted = [...displayCars].sort((a, b) => a.price - b.price);
-      setFilteredCars(sorted);
-    } else if (sortType === t("user_priceHighToLow")) {
-      const sorted = [...displayCars].sort((a, b) => b.price - a.price);
-      setFilteredCars(sorted);
-    }
-  };
-
-  // Close filter when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent): void => {
-      // Don't do anything if filter is already closed
-      if (!filterOpen) return;
-
-      // Check if click is outside BOTH the filter panel AND the filter button
-      if (
-        filterRef.current &&
-        !filterRef.current.contains(event.target as Node) &&
-        filterButtonRef.current &&
-        !filterButtonRef.current.contains(event.target as Node)
-      ) {
-        setFilterOpen(false);
-      }
-    };
-
-    // Add event listener to document
-    document.addEventListener("mousedown", handleClickOutside);
-
-    // Clean up
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [filterOpen]);
-
-  // Make sure our filter panel won't close if clicked on
-  useEffect(() => {
-    const preventPropagation = (e: MouseEvent): void => {
-      e.stopPropagation();
-    };
-
-    const filterElement = filterRef.current;
-    if (filterElement) {
-      filterElement.addEventListener("mousedown", preventPropagation);
-
-      return () => {
-        filterElement.removeEventListener("mousedown", preventPropagation);
-      };
-    }
-  }, [filterOpen]);
-
-  const handleSearch = (query: string): void => {
-    if (!cars) return;
-
-    const filtered = cars.filter((car) =>
-      car?.title.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredCars(filtered);
-  };
-
-  const handleFilter = (): void => {
-    if (!cars) return;
-
-    console.log("🔍 Current filter values:", filter);
-
-    const filtered = cars.filter((car) => {
-      // Maker filter - compare with English values, not translations
-      const makerMatch =
-        filter.maker === "All Makes"
-          ? true
-          : car?.maker?.trim().toLowerCase() ===
-            filter.maker.trim().toLowerCase();
-
-      // Year filter
-      const yearMatch =
-        filter.year === "All Years"
-          ? true
-          : car?.year.toString() === filter.year;
-
-      // Fuel filter - compare with English values, not translations
-      const fuelMatch =
-        filter.fuel === "All Types"
-          ? true
-          : car?.fuel?.trim().toLowerCase() ===
-            filter.fuel.trim().toLowerCase();
-
-      // Body type filter
-      const bodyTypeMatch =
-        filter.bodyType === "All Body Types"
-          ? true
-          : car?.bodyType?.trim().toLowerCase() ===
-            filter.bodyType.trim().toLowerCase();
-
-      const result = makerMatch && yearMatch && fuelMatch && bodyTypeMatch;
-
-      if (!result) {
-        console.log(`❌ Car filtered out: ${car.title}`, {
-          makerMatch,
-          yearMatch,
-          fuelMatch,
-          bodyTypeMatch,
-          carData: {
-            maker: car.maker,
-            fuel: car.fuel,
-            year: car.year,
-            bodyType: car.bodyType,
-            price: car.price,
-          },
-        });
-      }
-
-      return result;
-    });
-
-    console.log(`✅ Filtered cars: ${filtered.length} out of ${cars.length}`);
-    setFilteredCars(filtered);
-    setFilterOpen(false);
-  };
-
-  const toggleFilter = (e?: React.MouseEvent): void => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setFilterOpen((prevState) => !prevState);
-  };
-
-  // Car card component
-  const CarCard: React.FC<CarCardProps> = ({ car, t, isRtl }) => {
-  return (
-    <Link 
-      key={car.id}
-      href={`/product?id=${car.id}`}
-      className="block bg-white rounded-md shadow-md overflow-hidden border border-blue-100 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 group cursor-pointer"
-    >
-      <div className="relative h-48 overflow-hidden">
-        <Image
-          width={350}
-          height={350}
-          src={car.images[car.imageIndex] || "/placeholder.svg"}
-          alt={car.title}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-        />
-        {/* <div className="absolute top-3 right-3 bg-blue-800 text-white text-xs font-medium px-2 py-1 rounded-full">
-          {t("home_premium")}
-        </div> */}
-      </div>
-
-      <div className="p-4">
-        <h3 className="font-bold text-gray-900 mb-1">{car.title}</h3>
-        {/* <p className="text-blue-800 font-bold text-lg mb-2">
-          {car.price.toLocaleString()} DA
-        </p> */}
-
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="flex items-center text-xs text-gray-600">
-            <Calendar className="h-3 w-3 mr-1 text-blue-800" />
-            <span>{car.year}</span>
-          </div>
-          <div className="flex items-center text-xs text-gray-600">
-            <Gauge className="h-3 w-3 mr-1 text-blue-800" />
-            <span>{car.mileage.toLocaleString()} km</span>
-          </div>
-          <div className="flex items-center text-xs text-gray-600">
-            <Fuel className="h-3 w-3 mr-1 text-blue-800" />
-            <span>{car.fuel}</span>
-          </div>
-          <div className="flex items-center text-xs text-gray-600">
-            <Settings className="h-3 w-3 mr-1 text-blue-800" />
-            <span>{car.transmission}</span>
-          </div>
-        </div>
-
-        <div className="w-full py-2 bg-blue-50 text-blue-800 font-medium rounded-lg hover:bg-blue-100 transition-colors flex items-center justify-center">
-          {t("home_viewDetails")}
-          <ChevronRight className={`ml-1 h-4 w-4 transition-transform duration-300 ${
-            isRtl ? "rotate-180 group-hover:-translate-x-1" : "group-hover:translate-x-1"
-          }`} />
-        </div>
-      </div>
-    </Link>
-  );
-};
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    handleSearch(e.target.value);
-  };
-
-  const handleFilterChange =
-    (field: keyof FilterState) =>
-    (e: React.ChangeEvent<HTMLSelectElement>): void => {
-      setFilter({ ...filter, [field]: e.target.value });
-    };
-
-  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    handleSort(e.target.value);
-  };
-
-  const resetFilters = (): void => {
-    if (cars) {
-      setFilteredCars(cars);
-    }
-    setSelectedQuickFilter("all");
-    setFilter({
-      maker: "All Makes",
-      year: "All Years",
-      fuel: "All Types",
-      bodyType: "All Body Types",
-    });
-  };
-
-  const handleQuickFilter = (filterType: "all" | "electric" | "bus"): void => {
-    if (!cars) return;
-
-    setSelectedQuickFilter(filterType);
-    setFilterOpen(false);
-
-    switch (filterType) {
-      case "all":
-        setFilteredCars(cars);
-        break;
-      case "electric":
-        const electricCars = cars.filter(
-          (car) =>
-            car?.fuel?.trim().toLowerCase().includes("electric") ||
-            car?.fuel?.trim().toLowerCase().includes("électrique")
-        );
-        setFilteredCars(electricCars);
-        break;
-      case "bus":
-        const buses = cars.filter(
-          (car) =>
-            car?.bodyType?.trim().toLowerCase().includes("bus") ||
-            car?.title?.toLowerCase().includes("bus")
-        );
-        setFilteredCars(buses);
-        break;
-      default:
-        setFilteredCars(cars);
-    }
-  };
-
   return (
     <div
       className={`min-h-screen bg-white overflow-x-hidden overflow-y-auto ${
@@ -508,9 +490,7 @@ const CarListingPage: React.FC = () => {
         {/* Page Title and Search */}
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 sm:mb-10">
           <div className="mb-6 md:mb-0 animate-fadeInUp">
-            <span className="inline-block px-3 py-1 bg-blue-800 bg-opacity-10 rounded-full text-sm font-medium border border-blue-800 text-white mb-2">
-              {t("user_premiumCollection")}
-            </span>
+           
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
               {t("user_discoverPerfectVehicle")}
             </h2>
@@ -613,7 +593,7 @@ const CarListingPage: React.FC = () => {
                 onChange={handleFilterChange("maker")}
               >
                 <option>All Makes</option>
-                {[...new Set((cars || []).map((car) => car.maker))]
+                {[...new Set((allCars || []).map((car) => car.maker))]
                   .sort()
                   .map((maker) => (
                     <option key={maker} value={maker}>
@@ -640,7 +620,7 @@ const CarListingPage: React.FC = () => {
                 onChange={handleFilterChange("year")}
               >
                 <option>All Years</option>
-                {[...new Set((cars || []).map((car) => car.year))]
+                {[...new Set((allCars || []).map((car) => car.year))]
                   .sort((a, b) => b - a)
                   .map((year) => (
                     <option key={year} value={year.toString()}>
@@ -649,37 +629,7 @@ const CarListingPage: React.FC = () => {
                   ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <label
-                className="text-sm font-medium text-gray-700 flex items-center"
-                htmlFor="fuel"
-              >
-                <span className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-800 mx-2">
-                  <Fuel className="h-4 w-4" />
-                </span>
-                {t("user_fuelType")}
-              </label>
-              <select
-                id="fuel"
-                className="rounded-lg border border-blue-200 px-3 py-2 w-full focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-blue-50"
-                aria-label="Fuel type"
-                value={filter.fuel}
-                onChange={handleFilterChange("fuel")}
-              >
-                <option>All Types</option>
-                {[
-                  ...new Set(
-                    (cars || []).map((car) => car.fuel).filter(Boolean)
-                  ),
-                ]
-                  .sort()
-                  .map((fuel) => (
-                    <option key={fuel} value={fuel}>
-                      {fuel}
-                    </option>
-                  ))}
-              </select>
-            </div>
+            
             <div className="space-y-2">
               <label
                 className="text-sm font-medium text-gray-700 flex items-center"
@@ -700,7 +650,7 @@ const CarListingPage: React.FC = () => {
                 <option>All Body Types</option>
                 {[
                   ...new Set(
-                    (cars || []).map((car) => car.bodyType).filter(Boolean)
+                    (allCars || []).map((car) => car.bodyType).filter(Boolean)
                   ),
                 ]
                   .sort()
@@ -807,10 +757,6 @@ const CarListingPage: React.FC = () => {
                 <>
                   {t("user_showing")}{" "}
                   <span className="font-medium text-blue-800">
-                    {currentCars.length}
-                  </span>{" "}
-                  {t("user_of")}{" "}
-                  <span className="font-medium text-blue-800">
                     {displayCars.length}
                   </span>{" "}
                   {t("user_results")}
@@ -905,71 +851,70 @@ const CarListingPage: React.FC = () => {
           <>
             {/* Car Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {currentCars.map((car) => (
-                <CarCard
-                  key={car?.id}
-                  car={car}
-                  t={t}
-                  isRtl={isRtl}
-                />
+              {displayCars.map((car) => (
+                <CarCard key={car?.id} car={car} t={t} isRtl={isRtl} />
               ))}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                  {/* Pagination Info */}
-                  <div className="text-sm text-gray-600">
-                    {t("user_showing")}{" "}
-                    <span className="font-medium text-blue-800">
-                      {indexOfFirstCar + 1}
-                    </span>{" "}
-                    -{" "}
-                    <span className="font-medium text-blue-800">
-                      {Math.min(indexOfLastCar, displayCars.length)}
-                    </span>{" "}
-                    {t("user_of")}{" "}
-                    <span className="font-medium text-blue-800">
-                      {displayCars.length}
-                    </span>{" "}
-                    {t("user_results")}
-                  </div>
+            {/* Pagination - Only show when not filtering/searching (fuel filter is backend-handled) */}
+            {!searchQuery &&
+              selectedQuickFilter === "all" &&
+              !sortType &&
+              !hasActiveClientFilters &&
+              totalPages > 1 && (
+                <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    {/* Pagination Info */}
+                    <div className="text-sm text-gray-600">
+                      {t("user_showing")}{" "}
+                      <span className="font-medium text-blue-800">
+                        {(currentPage - 1) * carsPerPage + 1}
+                      </span>{" "}
+                      -{" "}
+                      <span className="font-medium text-blue-800">
+                        {Math.min(currentPage * carsPerPage, totalCars)}
+                      </span>{" "}
+                      {t("user_of")}{" "}
+                      <span className="font-medium text-blue-800">
+                        {totalCars}
+                      </span>{" "}
+                      {t("user_results")}
+                    </div>
 
-                  {/* Pagination Buttons */}
-                  <div className="flex items-center justify-center">
-                    <nav
-                      className="flex items-center space-x-1"
-                      aria-label="Pagination"
-                    >
-                      {renderPaginationButtons()}
-                    </nav>
-                  </div>
+                    {/* Pagination Buttons */}
+                    <div className="flex items-center justify-center">
+                      <nav
+                        className="flex items-center space-x-1"
+                        aria-label="Pagination"
+                      >
+                        {renderPaginationButtons()}
+                      </nav>
+                    </div>
 
-                  {/* Page Jump */}
-                  <div className="flex items-center gap-2 text-sm">
-                    <span className="text-gray-600">
-                      {t("user_goToPage") || "Go to page"}
-                    </span>
-                    <input
-                      type="number"
-                      min={1}
-                      max={totalPages}
-                      value={currentPage}
-                      onChange={(e) => {
-                        const page = parseInt(e.target.value);
-                        if (page >= 1 && page <= totalPages) {
-                          handlePageChange(page);
-                        }
-                      }}
-                      className="w-16 px-2 py-1 border border-blue-200 rounded text-center focus:outline-none focus:border-blue-500"
-                      aria-label="Jump to page"
-                    />
-                    <span className="text-gray-600">of {totalPages}</span>
+                    {/* Page Jump */}
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-gray-600">
+                        {t("user_goToPage") || "Go to page"}
+                      </span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={totalPages}
+                        value={currentPage}
+                        onChange={(e) => {
+                          const page = parseInt(e.target.value);
+                          if (page >= 1 && page <= totalPages) {
+                            handlePageChange(page);
+                          }
+                        }}
+                        className="w-16 px-2 py-1 border border-blue-200 rounded text-center focus:outline-none focus:border-blue-500"
+                        aria-label="Jump to page"
+                      />
+                      <span className="text-gray-600">of {totalPages}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
           </>
         )}
       </main>
