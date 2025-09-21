@@ -43,7 +43,6 @@ const SignupPage: React.FC = () => {
   const [hoveredCard, setHoveredCard] = useState<HoveredCard>(null)
   const {loading: isLoading, signUp} = useAuth()
 
-
   const toggleLanguage = (): void => {
     if (language === "fr") {
       setLanguage("ar")
@@ -147,16 +146,24 @@ const SignupPage: React.FC = () => {
   }
 
   const handleChangeRole = (role: UserRole): void => {
-    if (isLoading) return // Prevent changes while loading
+    if (isLoading) return 
 
     // Only allow selecting "user" role, show alert for others
-    if (role === "showroom" || role === "agent") {
+    if (role === "showroom" ) {
       alert(t('signup_featureNotUnlocked'))
       return
     }
 
     setSelectedRole(role)
     setFormData({ ...formData, type: role })
+  }
+
+  const navigateToSpecificRoute = (): void => {
+    if (selectedRole === "user") {
+       router.push('/user')
+    }else if(selectedRole === "agent") {
+      router.push('/agent')
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
@@ -173,6 +180,7 @@ const SignupPage: React.FC = () => {
           )
           if(user){
             toast.success("Succeffully created")
+            navigateToSpecificRoute()
           }
       } catch (error) {
         console.error("Signup failed:", error)
@@ -290,20 +298,7 @@ const SignupPage: React.FC = () => {
                       disabled={isLoading}
                     />
 
-                    {/* Locked overlay */}
-                    <div
-                      className={`absolute inset-0 bg-black/80 flex items-center justify-center transition-opacity duration-300 rounded-lg ${
-                        hoveredCard === "agent" ? "opacity-100" : "opacity-0 pointer-events-none"
-                      }`}
-                      dir={language === "ar" ? "rtl" : "ltr"}
-                    >
-                      <div className="text-center p-2">
-                        <div className="bg-blue-800 rounded-full h-8 w-8 flex items-center justify-center mx-auto mb-2">
-                          <Lock className="h-4 w-4 text-white" />
-                        </div>
-                        <p className="text-white text-xs font-medium">{t('signup_featureNotUnlocked')}</p>
-                      </div>
-                    </div>
+                    
                   </div>
                 </div>
               </div>
