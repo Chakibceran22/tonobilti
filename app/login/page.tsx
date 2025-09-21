@@ -63,9 +63,12 @@ const LoginPage: React.FC = () => {
         const user = await login(email, password);
         if (user) {
             toast.success(t('login_success'));
-            setTimeout(() => {
-              router.push("/user");
-            },1500)
+            if( user.user?.user_metadata.role === 'user') {
+              router.push('/user');
+            }
+            else if( user.user?.user_metadata.role === 'agent') {
+              router.push('/agent');
+            }
         }
     } catch (error) {
         console.error("Login error:", error);
