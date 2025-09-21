@@ -155,10 +155,24 @@ const SalesAgentPage: React.FC = () => {
     return res.data.token;
   }
 
-  const handleGetSellingLink = async(carId: string) => {
-    const sellingLink = await generateToken(user?.id, user?.email)
-    console.log("Selling link for car", carId, ":", `${window.location.origin}/product?id=${carId}&?token=${sellingLink}`);
-  };
+  const handleGetSellingLink = async (carId: string) => {
+  try {
+    if (typeof window === "undefined" || !navigator?.clipboard) {
+      console.error("Clipboard API not available");
+      return;
+    }
+
+    const agentToken = await generateToken(user?.id, user?.email);
+
+    const saleLink = `${window.location.origin}/product?id=${carId}&token=${agentToken}`;
+
+    await navigator.clipboard.writeText(saleLink);
+
+    console.log("Copied to clipboard:", saleLink);
+  } catch (err) {
+    console.error("Error generating or copying link:", err);
+  }
+};
 
   const filteredCars = cars;
 
