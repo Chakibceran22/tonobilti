@@ -27,11 +27,12 @@ import type { CarData } from "@/types/carTypes";
 import useAuth from "@/hooks/useAuth";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { carService } from "@/lib/carService";
-import {  OrderToSend } from "@/types/orderTypes";
+import { OrderToSend } from "@/types/orderTypes";
 import { orderService } from "@/lib/orderService";
 import toast from "react-hot-toast";
 import { Comune, Comunes, Wilayas, Wilaya } from "@/types/locationTypes";
 import Image from "next/image";
+import PromoCodeSection from "@/components/PromoCodeSection";
 interface ShippingOption {
   id: string;
   name: string;
@@ -71,12 +72,13 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
       await orderService.addOrder(order),
     onError: (error) => {
       console.error("Order submission error:", error.message);
-      if(error.message == 'duplicate key value violates unique constraint "unique_user_car"'){
-        toast.error(t('checkout_orderDoneBefore'))
-      }
-      else{
+      if (
+        error.message ==
+        'duplicate key value violates unique constraint "unique_user_car"'
+      ) {
+        toast.error(t("checkout_orderDoneBefore"));
+      } else {
         toast.error(t("checkout_orderError"));
-
       }
       setIsSubmitting(false);
     },
@@ -136,7 +138,22 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
       maxDays: 40,
     },
   ];
+  const handlePromoApplied = (code: string, discount: number, label: string): void => {
+  setFormData((prev) => ({
+    ...prev,
+    promo_code: code,
+    promo_code_disscount: discount,
+  }));
+};
 
+// Handle promo code removal
+const handlePromoRemoved = (): void => {
+  setFormData((prev) => ({
+    ...prev,
+    promo_code: "",
+    promo_code_disscount: 0,
+  }));
+};
   const handleChangeWilaya = (
     e: React.ChangeEvent<HTMLSelectElement>
   ): void => {
@@ -182,6 +199,8 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
     // Shipping options
     shippingOption: "",
     shippingPrice: 0,
+    promo_code: "",
+    promo_code_disscount: 0,
 
     user_id: user?.id || "",
     car_id: id,
@@ -238,7 +257,8 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
       portDeliveryFeeDZD +
       formData.shippingPrice +
       dedouanementTax +
-      serviceFee
+      serviceFee -
+      formData.promo_code_disscount
     : 0;
 
   useEffect(() => {
@@ -496,7 +516,9 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
               <option value="">{t("checkout_selectCity")}</option>
               {filteredCities.map((city) => (
                 <option key={city.id} value={city.commune_name_ascii}>
-                  {language == 'ar' ? city.commune_name: city.commune_name_ascii}
+                  {language == "ar"
+                    ? city.commune_name
+                    : city.commune_name_ascii}
                 </option>
               ))}
             </select>
@@ -816,7 +838,16 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
             </div>
           </div>
         </div>
-
+        <div className="bg-white rounded-md p-3 sm:p-4 border border-blue-100">
+          <PromoCodeSection
+            isRtl={isRtl}
+            t={t}
+            currentPromoCode={formData.promo_code}
+            currentPromoDiscount={formData.promo_code_disscount}
+            onPromoApplied={handlePromoApplied}
+            onPromoRemoved={handlePromoRemoved}
+          />
+        </div>
         {/* Additional information */}
         <div className="bg-blue-50 border border-blue-200 rounded-md p-3 sm:p-4">
           <h5 className="font-medium text-blue-800 mb-3 text-xs sm:text-sm">
@@ -909,7 +940,7 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
           <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-white border border-blue-100">
             <Image
               width={300}
-              height = {300}
+              height={300}
               src={car?.images[car?.imageIndex] || "/placeholder.svg"}
               alt={car?.title || "Car Image"}
               className="w-full h-full object-contain"
@@ -1017,8 +1048,6 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
             </span>
           </div>
         </div>
-
-       
       </div>
     );
   };
