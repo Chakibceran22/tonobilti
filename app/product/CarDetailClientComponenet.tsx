@@ -26,13 +26,16 @@ import { CarData } from "@/types/carTypes";
 import Link from "next/link";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 interface CarDetailClientComponentProps {
   id: string;
+  token: string | null;
 }
 
 const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
   id,
+  token
 }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<string>("specs");
@@ -48,12 +51,14 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
     return
   }
 
+ 
 
  
 
   // Function to handle sharing the current page URL
   const handleShare = (): void => {
     const currentUrl = window.location.href;
+    console.log("Id:", id, "Token:", token);
 
     // Check if the Web Share API is available (better for mobile)
     if (navigator.share && /mobile|android|ios/i.test(navigator.userAgent)) {
@@ -481,7 +486,7 @@ const CarDetailClientComponent: React.FC<CarDetailClientComponentProps> = ({
               {/* Action buttons - stack on very small screens */}
               <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-3 sm:space-y-0 mb-6 sm:mb-8">
                 <Link
-                  href={`/checkout?id=${car.id}`}
+                  href={`/checkout?id=${car.id}&token=${token}`}
                   className="flex-1 flex justify-center items-center bg-blue-800 text-white font-medium py-3 px-4 rounded-lg hover:bg-blue-900 transition-colors shadow-sm"
                 >
                   <CheckCircle className="h-5 w-5 mr-2" />

@@ -33,6 +33,7 @@ import toast from "react-hot-toast";
 import { Comune, Comunes, Wilayas, Wilaya } from "@/types/locationTypes";
 import Image from "next/image";
 import PromoCodeSection from "@/components/PromoCodeSection";
+import axios from "axios";
 interface ShippingOption {
   id: string;
   name: string;
@@ -46,7 +47,7 @@ interface ShippingOption {
   maxDays: number;
 }
 
-const CheckoutClientComponent = ({ id }: { id: string }) => {
+const CheckoutClientComponent = ({ id, token }: { id: string, token: string| null }) => {
   const [step, setStep] = useState<number>(1);
   const [isMobile, setIsMobile] = useState<boolean>(false);
   const router = useRouter();
@@ -86,10 +87,32 @@ const CheckoutClientComponent = ({ id }: { id: string }) => {
       toast.success(t("checkout_orderPlacedSuccess"));
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       setIsSubmitting(false);
-      // Optionally redirect to success page or orders page
-      // router.push('/orders');
+      router.push('/profile')
+      
     },
   });
+  const decryptTone = async (token: string | null) => {
+    if( isLoading) {
+      console.log('we are waiting ')
+      return
+    }
+    if(!token) {
+      console.log(token)
+      console.log("no token ")
+      return
+    }
+    const url = `${window.location.origin}/api/decrypt-token`
+    const response = await axios.post(url,{
+      token
+    })
+    if(response.data) {
+      const data = response.data
+      const agentId = data.data.id
+      return agentId
+    }
+
+  }
+  
 
   // Get USD to DZD conversion rate from environment variables
   const USD_TO_DZD_RATE = process.env.NEXT_PUBLIC_USD_TO_DZD_RATE
@@ -201,6 +224,7 @@ const handlePromoRemoved = (): void => {
     shippingPrice: 0,
     promo_code: "",
     promo_code_disscount: 0,
+    agent_id: "",
 
     user_id: user?.id || "",
     car_id: id,
@@ -208,6 +232,25 @@ const handlePromoRemoved = (): void => {
     status: "Pending",
     customsClearance: "service", // Default to service handling
   });
+  useEffect(() => {
+  const fetchAgentId = async () => {
+    try {
+      const agentId = await decryptTone(token);
+      if (agentId) {
+        setFormData(prev => ({
+          ...prev,
+          agent_id: agentId
+        }));
+      }
+    } catch (error) {
+      console.error('Error decrypting token:', error);
+    }
+  };
+
+  if (!isLoading && token) {
+    fetchAgentId();
+  }
+}, [token, isLoading]); // Add proper dependencies
 
   // Calculate dédouanement (customs clearance) tax based on car condition and age
   const calculateDedouanementTax = (car: CarData | undefined): number => {

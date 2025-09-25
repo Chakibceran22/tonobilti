@@ -8,11 +8,16 @@ import ChekoutClientComponent from './CheckoutClientComponent'; // Move your com
 export default function ProductPage() {
   const searchParams = useSearchParams();
   const [id, setId] = useState<string>('');
+  const [token, setToken] = useState<string | null>(null);
   
   useEffect(() => {
     const productId = searchParams.get('id');
     if (productId) {
       setId(productId);
+    }
+    const tempToken = searchParams.get('token');
+    if( tempToken) {
+      setToken(tempToken)
     }
   }, [searchParams]);
 
@@ -20,5 +25,5 @@ export default function ProductPage() {
     return <div>Loading...</div>;
   }
 
-  return <ChekoutClientComponent id={id} />;
+  return <ChekoutClientComponent id={id}  token={token}/>;
 }

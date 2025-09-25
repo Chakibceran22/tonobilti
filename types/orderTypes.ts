@@ -54,6 +54,7 @@ export interface OrderToSend {
   portDeliveryFee?: number;     // Fixed port fee (~2750 USD converted to DZD)
   serviceFee?: number;          // Service fee if using customs service (~150,000 DZD)
   customsTax?: number;          // Estimated customs tax (30-45% of vehicle price)
+  agent_id: string;
 
   promo_code: string,
   promo_code_disscount: number,
