@@ -514,6 +514,16 @@
     "checkout_orderPlacedSuccess": "Commande passée avec succès!",
     "checkout_orderError": "Une erreur s'est produite lors du passage de votre commande. Veuillez réessayer.",
     "checkout_orderDoneBefore": "Vous avez déjà créé cette commande auparavant",
+    "promocode_label": "Code Promotionnel",
+    "promocode_placeholder": "Entrez votre code",
+    "promocode_error": "Erreur de code promotionnel",
+    "promocode_applying": "Application...",
+    "promocode_apply_button": "Appliquer le Code",
+    "promocode_applied_label": "Code promotionnel appliqué",
+    "promocode_code": "Code :",
+    "promocode_remove": "Supprimer",
+    "promocode_discount": "Réduction :",
+    
 
    "learnMore_pageTitle": "Options d'Importation de Voitures",
   "learnMore_backToCheckout": "Retour à l'Achat",
@@ -1306,6 +1316,15 @@
 
   "checkout_orderPlacedSuccess": "تم وضع الطلب بنجاح!",
   "checkout_orderError": "حدث خطأ أثناء وضع طلبك. يرجى المحاولة مرة أخرى.",
+   "promocode_label": "رمز ترويجي",
+    "promocode_placeholder": "أدخل الرمز الخاص بك",
+    "promocode_error": "خطأ في الرمز الترويجي",
+    "promocode_applying": "جاري التطبيق...",
+    "promocode_apply_button": "تطبيق الرمز",
+    "promocode_applied_label": "تم تطبيق الرمز الترويجي",
+    "promocode_code": "الرمز:",
+    "promocode_remove": "إزالة",
+    "promocode_discount": "التخفيض:",
 
   "learnMore_pageTitle": "خيارات استيراد السيارات",
   "learnMore_backToCheckout": "العودة إلى الشراء",

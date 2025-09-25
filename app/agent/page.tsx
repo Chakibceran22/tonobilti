@@ -164,7 +164,7 @@ const SalesAgentPage: React.FC = () => {
 
     const agentToken = await generateToken(user?.id, user?.email);
 
-    const saleLink = `${window.location.origin}/product?id=${carId}&token=${agentToken}`;
+    const saleLink = `tonobilti-/product?id=${carId}&token=${agentToken}`;
 
     await navigator.clipboard.writeText(saleLink);
 
